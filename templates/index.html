@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XAI Plagiarism Assistant</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .container { width: 100%; max-width: 900px; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 10px; }
+        .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 30px; }
+        
+        .input-group { display: flex; gap: 20px; margin-bottom: 25px; }
+        textarea { width: 100%; height: 120px; padding: 15px; border: 2px solid #ecf0f1; border-radius: 10px; resize: vertical; font-size: 14px; transition: border 0.3s; }
+        textarea:focus { border-color: #3498db; outline: none; }
+        
+        button { width: 100%; padding: 15px; background: #3498db; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+        button:hover { background: #2980b9; }
+
+        /* Result Section */
+        #result { margin-top: 30px; display: none; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .verdict-box { padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
+        .danger { background: #fadbd8; color: #c0392b; border: 1px solid #e6b0aa; }
+        .safe { background: #d4efdf; color: #27ae60; border: 1px solid #a9dfbf; }
+        
+        /* Explanation Cards */
+        .cards { display: flex; gap: 15px; margin-bottom: 20px; }
+        .card { flex: 1; background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #e9ecef; }
+        .card h3 { margin: 0; font-size: 24px; color: #2c3e50; }
+        .card span { font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Correction / Counterfactual Section */
+        .correction-box { background: #e8f6f3; border-left: 5px solid #1abc9c; padding: 15px; border-radius: 5px; margin-top: 20px; }
+        .correction-title { font-weight: bold; color: #16a085; display: block; margin-bottom: 5px; }
+        
+        /* Highlighting Logic */
+        .highlight { background-color: #ffeb3b; font-weight: bold; padding: 2px 4px; border-radius: 3px; }
+        .attribution-box { margin-top: 20px; padding: 15px; background: #fff; border: 1px solid #eee; border-radius: 8px; }
+        .attribution-text { color: #555; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>DePlag</h1>
+    <p class="subtitle">Detect, Explain, and Correct Paraphrased Text</p>
+    
+    <div class="input-group">
+        <textarea id="text1" placeholder="Original Text..."></textarea>
+        <textarea id="text2" placeholder="Suspected Text..."></textarea>
+    </div>
+
+    <button type="button" onclick="analyzeText()"> Analyze & Explain</button>
+
+    <div id="result">
+        <div id="verdict-box" class="verdict-box">
+            <h2 id="verdict-text" style="margin:0;"></h2>
+            <p style="margin:5px 0 0;">Confidence: <span id="conf-score"></span>%</p>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <h3 id="score-sim">0%</h3>
+                <span>Semantic Meaning</span>
+            </div>
+            <div class="card">
+                <h3 id="score-overlap">0%</h3>
+                <span>Word Copying</span>
+            </div>
+        </div>
+
+        <div class="correction-box">
+            <span class="correction-title">💡 How to beat the detection:</span>
+            <span id="advice-text">Analysis pending...</span>
+        </div>
+
+        <div class="attribution-box">
+            <strong>🔍 Visual Evidence (Shared Words):</strong>
+            <p id="visual-evidence" class="attribution-text"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function analyzeText() {
+        const text1 = document.getElementById('text1').value;
+        const text2 = document.getElementById('text2').value;
+        
+        if(!text1 || !text2) { alert("Please enter both texts."); return; }
+
+        // Send to Server
+        const response = await fetch('/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text1, text2 })
+        });
+        const data = await response.json();
+
+        // Update Verdict
+        const box = document.getElementById('verdict-box');
+        const text = document.getElementById('verdict-text');
+        
+        if(data.is_plagiarism) {
+            box.className = 'verdict-box danger';
+            text.innerText = "🚨 Plagiarism Detected";
+        } else {
+            box.className = 'verdict-box safe';
+            text.innerText = "✅ Original Content";
+        }
+        document.getElementById('conf-score').innerText = data.confidence;
+        document.getElementById('score-sim').innerText = data.explanation.cosine_pct + "%";
+        document.getElementById('score-overlap').innerText = data.explanation.overlap_pct + "%";
+
+        // Update Advice
+        document.getElementById('advice-text').innerText = data.explanation.advice;
+
+        // Visual Evidence Logic
+        const shared = new Set(data.explanation.shared_words);
+        const evidenceBox = document.getElementById('visual-evidence');
+        
+        if (data.is_plagiarism && shared.size === 0) {
+            // Semantic Plagiarism 
+            evidenceBox.innerHTML = `
+                <div style="background-color: #fff3cd; padding: 10px; border-left: 4px solid #ffeb3b; color: #856404;">
+                    <strong>⚠️ Semantic Match:</strong> No direct words were copied, but the 
+                    <span style="text-decoration: underline;">meaning</span> of this entire block is identical to the original.
+                </div>
+                <p style="margin-top:10px; opacity: 0.8;">${text2}</p>
+            `;
+        } else {
+            // Standard Highlighting
+            function highlightText(inputText) {
+                return inputText.split(/(\s+)/).map(part => { // Split keeping whitespace
+                    const cleanWord = part.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    if (cleanWord.length > 0 && shared.has(cleanWord)) {
+                        return `<span class="highlight">${part}</span>`;
+                    }
+                    return part;
+                }).join('');
+            }
+            evidenceBox.innerHTML = highlightText(text2);
+        }
+
+        document.getElementById('result').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
