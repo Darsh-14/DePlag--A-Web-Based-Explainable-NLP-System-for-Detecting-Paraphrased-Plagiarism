@@ -1,0 +1,16 @@
+# Web Framework
+Flask==3.0.0
+
+# Natural Language Processing & Transformers
+sentence-transformers==2.2.2
+spacy==3.7.2
+nltk==3.8.1
+
+# Machine Learning & Data Science
+pandas==2.1.1
+numpy==1.26.0
+scikit-learn==1.3.1
+
+# Utilities
+pickle-mixin==1.0.2
+gunicorn==21.2.0  # Required for deployment on many academic servers
