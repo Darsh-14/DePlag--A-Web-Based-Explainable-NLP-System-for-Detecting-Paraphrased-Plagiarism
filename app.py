@@ -1,161 +1,247 @@
-from flask import Flask, render_template, request, jsonify
-import pickle
-import numpy as np
+"""
+app.py
+======
+DePlag Plagiarism Detection — Inference Pipeline
+
+Uses the fine-tuned cross-encoder (RoBERTa-base, 90.84% test accuracy) for
+classification.  The SBERT model (deplag_brain) is kept loaded for the XAI
+layer (GWIE counterfactuals / Integrated Gradients attribution).
+
+Cross-encoder weights:  models/config.json + model.safetensors + tokenizer.*
+SBERT weights:          models/deplag_brain/
+"""
+
 import os
-import re
-from sentence_transformers import SentenceTransformer
-import spacy
+import sys
+import json
+import numpy as np
+import torch
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-app = Flask(__name__)
+sys.path.insert(0, os.path.dirname(__file__))
+from nlp.preprocess import normalize
 
-# --- CONFIG ---
-MODEL_PATH = "models/semantic_model.pkl"
-SBERT_MODEL_NAME = 'sentence-t5-base'
+# ── Model Paths ────────────────────────────────────────────────────────────────
+CROSS_ENCODER_PATH = "models"                # config.json + model.safetensors
+SBERT_PATH         = "models/deplag_brain"   # kept for XAI (GWIE / IG)
+RESULTS_PATH       = "models/results.json"   # threshold + metadata
+MAX_LENGTH         = 192                     # must match training config
 
-# --- GLOBAL VARIABLES ---
-classifier = None
-sbert = None
-nlp = None 
-
-def load_resources():
-    global classifier, sbert, nlp
-    print("⏳ Initializing Ethical Engine...")
-    
-    # Load Spacy (Entity Recognition)
-    try:
-        print("   -> Loading Spacy (NER)...")
-        nlp = spacy.load("en_core_web_sm")
-    except Exception as e:
-        print(f"❌ CRITICAL ERROR: Spacy model missing. Run: python -m spacy download en_core_web_sm")
-        return
-
-    # Load SBERT for Semantic Embeddings
-    try:
-        print(f"   -> Loading SBERT ({SBERT_MODEL_NAME})...")
-        sbert = SentenceTransformer(SBERT_MODEL_NAME)
-    except Exception as e:
-        print(f"❌ CRITICAL ERROR: Could not load SBERT. Details: {e}")
-        return
-
-    # Load Classifier Logistic Regression
-    if os.path.exists(MODEL_PATH):
-        try:
-            with open(MODEL_PATH, "rb") as f:
-                classifier = pickle.load(f)
-            print("✅ System Ready!")
-        except Exception as e:
-            print(f"❌ CRITICAL ERROR: Model corrupt. Details: {e}")
-    else:
-        print(f"❌ ERROR: Model file not found at {MODEL_PATH}. Run train_semantic.py!")
-
-# We will Initialize everything on startup
-load_resources()
-
-#  WE CAN FIND CAUSAL WORDS & ENTITIES 
-def extract_explanation_data(text1, text2):
-    # 1. Standard Token Overlap
-    tokens1 = set(re.findall(r'\w+', text1.lower()))
-    tokens2 = set(re.findall(r'\w+', text2.lower()))
-    
-    stop_words = {'the', 'is', 'in', 'at', 'of', 'on', 'and', 'a', 'an', 
-                  'to', 'for', 'it', 'with', 'that', 'this', 'by', 'from', 'as'}
-    
-    shared_tokens = list((tokens1 - stop_words).intersection(tokens2 - stop_words))
-    
-    # Named Entity Overlap using Spacy
-    if nlp:
-        doc1 = nlp(text1)
-        doc2 = nlp(text2)
-        ents1 = {e.text.lower() for e in doc1.ents}
-        ents2 = {e.text.lower() for e in doc2.ents}
-        shared_phrases = list(ents1.intersection(ents2))
-        
-        entity_tokens = []
-        for phrase in shared_phrases:
-            entity_tokens.extend(phrase.split())
-            
-        combined_evidence = list(set(shared_tokens + entity_tokens))
-        return combined_evidence
-        
-    return shared_tokens
+# ── Module-level handles (load once) ───────────────────────────────────────────
+_model     = None   # cross-encoder
+_tokenizer = None   # RobertaTokenizer
+_threshold = None   # F1-optimal decision threshold (0.435)
+_sbert     = None   # SBERT for XAI — exposed for server.py
+_device    = None
 
 
-@app.route('/')
-def home():
-    return render_template('index.html')
+def _load_models():
+    global _model, _tokenizer, _threshold, _sbert, _device
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    if not classifier or not sbert:
-        return jsonify({'error': 'Server Error: Models are not loaded.'}), 500
+    if _model is None:
+        _device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"[DePlag] Loading cross-encoder from '{CROSS_ENCODER_PATH}' on {_device} ...")
+        _tokenizer = AutoTokenizer.from_pretrained(CROSS_ENCODER_PATH)
+        _model = AutoModelForSequenceClassification.from_pretrained(CROSS_ENCODER_PATH)
+        _model.to(_device)
+        _model.eval()
+        print(f"[DePlag] Cross-encoder loaded ({_model.config.model_type}, "
+              f"{sum(p.numel() for p in _model.parameters())/1e6:.0f}M params)")
 
-    try:
-        data = request.json
-        text1 = data.get('text1', '')
-        text2 = data.get('text2', '')
-        
-        if not text1 or not text2:
-            return jsonify({'error': 'Both sentences are required'}), 400
+    if _threshold is None:
+        with open(RESULTS_PATH) as f:
+            results = json.load(f)
+        _threshold = results["threshold"]
+        print(f"[DePlag] Decision threshold: {_threshold:.4f}  (F1-optimal)")
 
-        # FEATURES
-        emb1 = sbert.encode([text1])[0]
-        emb2 = sbert.encode([text2])[0]
-        norm1 = np.linalg.norm(emb1)
-        norm2 = np.linalg.norm(emb2)
-        
-        semantic_sim = 0.0
-        if norm1 > 0 and norm2 > 0:
-            semantic_sim = np.dot(emb1, emb2) / (norm1 * norm2)
-            
-        set1 = set(text1.lower().split())
-        set2 = set(text2.lower().split())
-        overlap = 0.0
-        if set1 or set2:
-            overlap = len(set1.intersection(set2)) / len(set1.union(set2))
+    if _sbert is None:
+        from sentence_transformers import SentenceTransformer
+        print(f"[DePlag] Loading SBERT from '{SBERT_PATH}' (for XAI) ...")
+        _sbert = SentenceTransformer(SBERT_PATH)
 
-        len1 = len(text1.split())
-        len2 = len(text2.split())
-        len_diff = abs(len1 - len2) / len1 if len1 > 0 else 0.0
 
-        # PREDICTION
-        features = [[semantic_sim, overlap]] 
-        prob = classifier.predict_proba(features)[0][1]
-        is_plagiarism = prob > 0.5
-        
-        # EXPLAINABILITY ---
-        shared_words = extract_explanation_data(text1, text2)
-        
-        # Reasoning
-        advice = ""
-        if is_plagiarism:
-            if overlap > 0.3:
-                advice = "⚠️ Patchwriting Detected. You are keeping too many original words. Challenge: Read the original, look away, and write the idea entirely from memory."
-            # UPDATED THRESHOLD: 0.75 -> 0.85 because T5 scores are consistently higher
-            elif semantic_sim > 0.85:
-                advice = "⚠️ Structural Plagiarism. You changed the words, but the sentence logic is identical. Try changing the sentence structure (e.g., Active ↔ Passive voice) or combining this with your own analysis."
-            else:
-                advice = "⚠️ Conceptual Similarity. The ideas are very close. Ensure you cite the source or add your own unique perspective."
-        else:
-            if semantic_sim > 0.6:
-                advice = "✅ Pass, but Borderline. Be careful: You are still very close to the original meaning. Ensure you aren't just swapping synonyms."
-            else:
-                advice = "✅ Content appears original."
+# ── Cross-encoder inference ────────────────────────────────────────────────────
 
-        return jsonify({
-            "is_plagiarism": bool(is_plagiarism),
-            "confidence": round(prob * 100, 1),
-            "explanation": {
-                "cosine_pct": round(float(semantic_sim) * 100, 1),
-                "overlap_pct": round(float(overlap) * 100, 1),
-                "len_diff": round(float(len_diff), 2),
-                "shared_words": shared_words, 
-                "advice": advice
-            }
+@torch.no_grad()
+def _predict_single(text_a: str, text_b: str) -> float:
+    """Returns P(plagiarism) from the cross-encoder for one pair."""
+    enc = _tokenizer(
+        text_a, text_b,
+        truncation=True,
+        max_length=MAX_LENGTH,
+        padding=True,
+        return_tensors="pt",
+    ).to(_device)
+
+    logits = _model(**enc).logits
+
+    if logits.shape[-1] == 1:
+        return torch.sigmoid(logits).item()
+    return torch.softmax(logits, dim=-1)[0, 1].item()
+
+
+@torch.no_grad()
+def _predict_batch(pairs: list[tuple[str, str]]) -> np.ndarray:
+    """Returns P(plagiarism) array for a batch of text pairs."""
+    texts_a = [a for a, _ in pairs]
+    texts_b = [b for _, b in pairs]
+
+    enc = _tokenizer(
+        texts_a, texts_b,
+        truncation=True,
+        max_length=MAX_LENGTH,
+        padding=True,
+        return_tensors="pt",
+    ).to(_device)
+
+    logits = _model(**enc).logits
+
+    if logits.shape[-1] == 1:
+        return torch.sigmoid(logits).squeeze(-1).cpu().numpy()
+    return torch.softmax(logits, dim=-1)[:, 1].cpu().numpy()
+
+
+# ── Public API ─────────────────────────────────────────────────────────────────
+
+def detect_plagiarism(text_a: str, text_b: str) -> dict:
+    """
+    Detects plagiarism between two texts using the cross-encoder.
+
+    Returns:
+        {
+          "is_plagiarism": bool,
+          "confidence":    float,   # P(plagiarism) [0, 1]
+          "label":         str,
+          "plagiarism_type": str,
+          "cosine_similarity": float,
+          "word_overlap":  float,
+        }
+    """
+    _load_models()
+
+    text_a_n, text_b_n = normalize(text_a), normalize(text_b)
+
+    # Cross-encoder classification
+    proba   = _predict_single(text_a_n, text_b_n)
+    is_plag = bool(proba >= _threshold)
+
+    # SBERT cosine similarity (for sub-typing + UI display)
+    embeddings = _sbert.encode(
+        [text_a_n, text_b_n],
+        batch_size=2,
+        convert_to_numpy=True,
+        normalize_embeddings=True,
+        show_progress_bar=False,
+    )
+    cosine_sim = float(np.dot(embeddings[0], embeddings[1]))
+    jaccard    = _jaccard(text_a_n, text_b_n)
+
+    return {
+        "is_plagiarism":     is_plag,
+        "confidence":        round(float(proba), 4),
+        "label":             "Plagiarism" if is_plag else "Not Plagiarism",
+        "plagiarism_type":   _classify_type(is_plag, cosine_sim, jaccard),
+        "cosine_similarity": round(cosine_sim, 4),
+        "word_overlap":      round(jaccard, 4),
+    }
+
+
+def detect_batch(pairs: list[tuple[str, str]]) -> list[dict]:
+    """
+    Efficient batch detection for multiple text pairs.
+
+    Args:
+        pairs: list of (text_a, text_b) tuples
+
+    Returns:
+        list of result dicts (same schema as detect_plagiarism)
+    """
+    _load_models()
+
+    pairs_n = [(normalize(a), normalize(b)) for a, b in pairs]
+
+    # Cross-encoder batch prediction
+    probas = _predict_batch(pairs_n)
+
+    # SBERT batch encode for cosine similarity
+    texts_flat = [t for pair in pairs_n for t in pair]
+    embeddings = _sbert.encode(
+        texts_flat,
+        batch_size=64,
+        convert_to_numpy=True,
+        normalize_embeddings=True,
+        show_progress_bar=False,
+    )
+    emb_a = embeddings[0::2]
+    emb_b = embeddings[1::2]
+
+    results = []
+    for i, (text_a, text_b) in enumerate(pairs_n):
+        proba      = float(probas[i])
+        is_plag    = bool(proba >= _threshold)
+        cosine_sim = float(np.dot(emb_a[i], emb_b[i]))
+        jaccard    = _jaccard(text_a, text_b)
+        results.append({
+            "is_plagiarism":     is_plag,
+            "confidence":        round(proba, 4),
+            "label":             "Plagiarism" if is_plag else "Not Plagiarism",
+            "plagiarism_type":   _classify_type(is_plag, cosine_sim, jaccard),
+            "cosine_similarity": round(cosine_sim, 4),
+            "word_overlap":      round(jaccard, 4),
         })
+    return results
 
-    except Exception as e:
-        print(f"❌ PREDICTION ERROR: {e}")
-        return jsonify({'error': f'Internal Logic Error: {str(e)}'}), 500
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+# ── Utility ────────────────────────────────────────────────────────────────────
+def _jaccard(text_a: str, text_b: str) -> float:
+    """Jaccard similarity on word sets."""
+    a_words = set(text_a.lower().split())
+    b_words = set(text_b.lower().split())
+    if not a_words and not b_words:
+        return 0.0
+    intersection = len(a_words & b_words)
+    union        = len(a_words | b_words)
+    return intersection / union if union else 0.0
+
+
+def _classify_type(is_plag: bool, cosine_sim: float, jaccard: float) -> str:
+    """Heuristic plagiarism sub-type based on similarity signals."""
+    if not is_plag:
+        return "None"
+    if jaccard > 0.7:
+        return "Verbatim Copy"
+    if jaccard > 0.3:
+        return "Patchwriting"
+    if cosine_sim > 0.85:
+        return "Structural Plagiarism"
+    return "Paraphrase Plagiarism"
+
+
+# ── CLI Demo ───────────────────────────────────────────────────────────────────
+if __name__ == "__main__":
+    examples = [
+        (
+            "The quick brown fox jumps over the lazy dog.",
+            "A fast auburn fox leaps across a sleepy canine.",
+        ),
+        (
+            "Climate change is accelerating due to greenhouse gas emissions.",
+            "Global warming is speeding up because of carbon dioxide in the atmosphere.",
+        ),
+        (
+            "I love eating pizza on Friday nights.",
+            "Quantum mechanics describes the behavior of subatomic particles.",
+        ),
+    ]
+
+    print("\n" + "="*60)
+    print("DePlag — Plagiarism Detection Demo (Cross-Encoder)")
+    print("="*60)
+    for i, (a, b) in enumerate(examples, 1):
+        result = detect_plagiarism(a, b)
+        print(f"\nPair {i}:")
+        print(f"  A: {a}")
+        print(f"  B: {b}")
+        print(f"  -> {result['label']} ({result['confidence']:.1%} confidence)")
+        print(f"     Type: {result['plagiarism_type']}")
+        print(f"     Cosine sim: {result['cosine_similarity']}  |  Word overlap: {result['word_overlap']}")

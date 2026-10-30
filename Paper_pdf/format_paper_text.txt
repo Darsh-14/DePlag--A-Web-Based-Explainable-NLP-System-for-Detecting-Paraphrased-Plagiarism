@@ -1,0 +1,465 @@
+Volume 5 Issue 1
+Article Number: 25247
+Structural Synthesis of Epicyclic Gear Trains by Deep Learning and
+Generative AI for Adaptive Automation
+Jiyaul Mustafa∗1, Shahnawaz Ahmad2, Mohammed Wasid3, Mohd Aquib Ansari4, and Shaharyar
+Alam Ansari2
+1Department of Mechanical Engineering, Bennett University, Greater Noida, Uttar Pradesh, India
+201310
+2School of Computer Science Engineering & Technology, Bennett University, Greater Noida, Uttar
+Pradesh, India 201310
+3Department of Computer Science and Engineering, The LNM Institute of Information Technology,
+Jaipur, Rajasthan, India 302031
+4School of Computing Science & Engineering, Galgotias University, Greater Noida, Uttar Pradesh,
+India 203201
+Abstract
+Structural synthesis of Epicyclic Gear Trains (EGTs) is a computationally demanding activity, particularly when
+identifying isomorphism between complex topologies and producing new gear designs to support high-performance
+automation systems. Graph-theoretic and algebraic methods are traditional and involve manual intervention and
+duplicate solutions. To address this shortcoming, this paper proposes a DL-based Generative AI framework for the
+automated synthesis and classification of EGTs. A Generative Adversarial Network (GAN) is trained on existing
+EGT topologies, learning their structures, creating new feasible structural mechanisms, and identifying duplication
+through degree sequence estimation and graph matching. The strategy is combined with the calculation of the
+connectivity matrix and the representation of the structural graph to ensure manufacturability and kinematic
+feasibility. The effectiveness of the proposed AI model is validated by the analysis of different EGTs, with 4–5 links,
+single DOF. Findings demonstrate that the GAN-based synthesis reliably distinguishes structurally distinct gear
+trains, eliminates pseudo-isomorphic designs, and saves a significant amount of design time. The technique justifies
+adaptive automation by designing intelligent mechanisms that require minimal human intervention. The paper
+demonstrates that AI-based synthesis can be highly effective in next-generation smart factories, robotic actuation,
+transmission systems, and reconfigurable automation platforms.
+Keywords: Deep Learning; Generative AI; Epicyclic Gear Trains; Isomorphism Detection; Adaptive Automation
+1. Introduction
+With high power density, compact design, and variable speed ratios, EGTs are widely used in automotive transmission
+systems, aerospace actuators, robotics, and industrial automation. Topological synthesis of EGTs generates non-
+redundant configurations of unique structures and identifies isomorphism between possible structures.
+∗Corresponding Author: Jiyaul Mustafa (jiyaul.alld@gmail.com)
+Received: 10 Dec 2025; Revised: 18 Jan 2026; Accepted: 23 Jan 2026; Published: 28 Feb 2026
+© 2025 Journal of Computers, Mechanical and Management.
+This is an open access article and is licensed under a Creative Commons Attribution-Non Commercial 4.0 License.
+DOI: 10.57159/jcmm.5.1.25247.
+1
+Algorithms that rely on graph theory, adjacency matrices, Boolean algebra, or Hamming numbers are correct but
+computationally costly and require expert intervention. As intelligent manufacturing and Industry 4.0 become more
+prominent, DL and Generative AI offer opportunities to automate EGT synthesis. GANs, Variational Autoencoders
+(VAEs), and transformer-based sequence models can learn the structural properties of EGT topologies, generate
+new, valid topologies, and automatically identify duplicates. These models, when combined with graph-theoretic
+representation, facilitate adaptive automation, in which gear mechanisms are set up on command to meet load, ratio,
+and design constraints [1–4].
+The algorithm was developed by Freudenstein [5] and is based on Boolean algebra, enabling the investigation of kinematic
+structure and contributing to dynamic analysis, computer-aided sketching, and animation. Wojnarowki and Lidwin [6]
+employed signal flow graphs in the kinematic study of planetary gear trains (PGTs) to compute angular velocities and
+transmission ratios. Uicker Jr and Raicu [7] presented a way to find kinematic chains and detect isomorphism, whereas
+Mrutyunjaya and Raghavan [8] presented a way to find isomorphism evaluation by Bocher’s formulae in kinematic
+chains. Allen [9] presented a bond graph model for the kinematic and dynamic analysis of gear drive transmission
+systems, enabling the identification of equations for torque transmission and velocity ratios. The approach used by Day
+et al. [10] to analyse PGT speed ratios is the tabulation technique, which assists designers in synthesising the correct
+speed ratios. Gibson and Kramer [11] proposed a symbolic representation of the description of two-DOF spur planetary
+gear trains (SPGTs) and provided 22 fundamental EGT configurations to provide kinematic equations. Ravisankar and
+Mruthyunjaya devised a computerised method for the structural analysis and synthesis of kinematic chains [12]. A new
+technique [13] that employed the Wiener number to identify isomorphism in epicyclic geared mechanisms and planar
+kinematic chains was solved by Mustafa and Hasan to eliminate long-term short-tailed duplicity problems. Jiyaul et al.
+[14] have presented a graph theory methodology for creating non-duplicative one-degree-of-freedom EGTs, utilising
+adjacency matrices and Wiener numbers.
+Compared to the modified path matrix, Mustafa et al. [15] compare the modified gradient and Bocher’s technique
+in terms of reliability, computational efficiency, and structural properties for EGTs. Mustafa et al. [16] proposed a
+variation of the path-matrix methodology for detecting isomorphism in an epicyclic gear train, which is problematic in
+current methodologies, using case studies. The paper by Chu and Zou [17] provided information on the synthesis of the
+structure and topological graphs of planar multiple-joint and geared kinematic chains. To prevent pseudo-isomorphism,
+Yang et al. [18] proposed a new method for detecting rotational graphs and the canonical rotational graphs of PGTs,
+introducing the concept of graph representation. Gao and Hu [19] provided a deeper examination of the topological
+synthesis and kinematic analysis of planetary transmission systems using graph theory, with a focus on the relationship
+between speed ratios and topology. Kamesh et al. [20] developed an algorithm using the net distance approach for
+the quantitative analysis of isomorphism in KCs and EGTs with 1-2 degrees of freedom (DOF), providing a simple
+calculation for isomorphism detection. Using the theory of vertex incidence polynomials, a new, efficient algorithm,
+tested in practice by Mustafa et al. [21], is innovative in the domain of isomorphism detection in EGTs and is called
+the Innovative Modified Gradient Method.
+Assur group synthesis was based on group and matroid theory by Morlin et al. [22], which provides a new mechanism
+design method. The paper by Alizade et al. [23] investigated structuring lower-class robot manipulators under the
+general constraint of one. Yang et al. [24] reviewed the intelligent design of planar mechanisms and highlighted future
+trends. Graph-based isomorphism detection has gained traction. Bouritsas et al. [25] enhanced the expressivity of graph
+neural networks, while Sun et al. [26] introduced a branch-chain matrix-based method for isomorphism identification.
+Further, Sun et al. [27] proposed similarity recognition techniques for kinematic chains. Several authors have suggested
+machine learning applications for the structural analysis of EGTs, railways, and the automotive sector, as detailed in
+[28–33].
+This paper presents a novel GAN-based methodology for structural synthesis of EGTs and isomorphism detection. The
+method reduces dependency on trial-and-error design, enables rapid generation of valid mechanisms, and enhances
+design intelligence in smart automated systems.
+2. Graphical Representation of EGTs
+Isomorphism detection and topological analysis within EGTs rely heavily on graph theory. Graph theory is the branch
+of science that deals with graphs, edges, and vertices. The graph connects a set of lines (edges) to a set of points
+(vertices) for structural analysis. Figures 1 and 2 show the skeleton diagram and functional schematic of one-DOF
+EGTs.
+2
+Figure 1: Skeleton diagram of four-link EGT
+Figure 2: Connectivity matrix chart for EGTs
+The connectivity matrix shows the connection between two vertices or links in EGTs. The matrix demonstrates
+symmetry, with all its diagonal positions containing zeros. The matrix derives from its functional schematic and is
+shown as: For an n × n connectivity matrix can be written as,
+[CM] =
+
+
+c11
+c12
+c13
+· · ·
+c1n
+c21
+c22
+c23
+· · ·
+c2n
+c31
+c32
+c33
+· · ·
+c3n
+...
+...
+...
+...
+...
+cn1
+cn2
+cn3
+· · ·
+cnn
+
+
+(1)
+The connectivity matrix for four-link one-DOF EGTs is based on the given chart.
+Adjacency Matrix, [Am] = {a4×4} =
+
+
+0
+1
+1
+2
+1
+0
+2
+1
+1
+2
+0
+3
+2
+1
+3
+0
+
+
+(2)
+3
+3. Deep Learning and Generative AI Framework
+Figure 3: Flow chart of complete methodology for DL and Generative AI approach for EGTs synthesis and analysis.
+Recent advancements in artificial intelligence have introduced powerful generative models capable of learning the
+underlying structure of complex mechanical systems. For epicyclic gear train synthesis, the goal of a generative model is
+to learn the distribution of feasible gear topologies and automatically produce new, non-isomorphic configurations. Three
+key deep-learning approaches relevant to mechanism synthesis are GANs, VAEs, and Transformer-based self-attention
+models.
+3.1. Dataset Preparation.
+A curated dataset of 312 validated EGT topologies (4–8 links, 1-DOF) was prepared from published sources in Tsai
+papers in [34, 35] and manually verified models. Each topology is encoded as a binary connectivity matrix and
+normalized to 8 × 8 by padding. The dataset is split into 80% training and 20% testing sets. Each sample satisfied:
+graph symmetry, zero diagonal, at least one meshing pair, and valid carrier–gear–ring relations.
+4
+3.2. Preprocessing.
+During preprocessing, the binary connectivity values {0, 1} were transformed to {−1, +1}, all matrices were uniformly
+padded to a size of 8 × 8, and mechanically invalid or graph-inconsistent topologies were automatically removed using
+predefined structural rules.
+3.3. GAN Architecture.
+The GAN architecture employed in this study comprises a Generator and a Discriminator designed specifically for
+graph-structured EGT data. The Generator accepts a 100-dimensional noise vector as input, processes it through a
+dense layer, then reshapes it and applies a graph of graph convolutional layers integrated with batch normalisation. It
+produces an 8 × 8 connectivity matrix using a Tanh activation function, followed by post-processing with a threshold
+to convert the continuous output to a discrete adjacency matrix. The Discriminator, on the other hand, consists of
+graph convolutional layers coupled with LeakyReLU activations and dropout regularisation, culminating in a dense
+sigmoid layer that distinguishes real matrices from those generated by the model. Training was carried out using the
+WGAN-GP framework with 600 epochs, a batch size of 32, and the Adam optimiser (learning rate 0.0002, β1 = 0.5).
+To ensure stable convergence, spectral normalisation, label smoothing, and gradient-penalty-based loss stabilisation
+techniques were incorporated throughout training.
+3.4. Evaluation Metrics.
+The performance of the GAN model was assessed using several evaluation metrics, including the Structural Validity
+Score (SVS), which measures the percentage of generated outputs that satisfy essential mechanical and graph-theoretic
+constraints; the Degree Sequence Uniqueness (DSU), which compares generated topologies with real samples to verify
+novelty; and the Graph Isomorphism Test, implemented through the VF2 algorithm, to identify and eliminate duplicate
+or pseudo-isomorphic structures. Additionally, the Frechet Graph Distance (FGD) was employed to quantify the
+distributional similarity between real and generated connectivity matrices, while the analysis of GAN loss trends
+throughout training served as an indicator of model stability and convergence.
+The flowchart of the complete
+methodology for the DL and Generative AI approach to EGT synthesis and analysis is shown in Figure 3.
+4. Results and Discussion
+The proposed DL and Generative AI algorithm is applied on various EGTs with different numbers of links and degrees
+of freedom for isomorphism detection and topological synthesis of mechanisms. The various examples are evaluated for
+detailed analysis of Generative AI-based GANs.
+4.1. Deep Learning and Generative AI Technique in Two EGT Graphs (4-links and 1-DOF).
+Figure 4: Graph of four-links one-DOF EGT
+5
+Table 1: Results of degree sequences of two EGT graphs using the GANs method
+Graph No.
+Connectivity Matrix [CM]
+Degree Sequences
+EGT4101
+C1 =
+
+
+0
+1
+1
+1
+1
+0
+2
+2
+1
+2
+0
+2
+1
+2
+2
+0
+
+
+D1 = {3, 5, 5, 5}
+EGT4102
+C2 =
+
+
+0
+1
+1
+2
+1
+0
+2
+1
+1
+2
+0
+3
+2
+1
+3
+0
+
+
+D2 = {4, 4, 6, 6}
+Table 1 shows D1 ̸= D2. The two mechanisms are non-isomorphic and therefore structurally distinct EGTs (Figure 4).
+This confirms that the GAN can generate valid four-link mechanisms that do not duplicate known topologies.
+4.2. Deep Learning and Generative AI Technique in Two EGT Graphs (5-links and 1-DOF).
+Figure 5: Graphs of five-links one-DOF EGT
+Table 2 shows D3 ̸= D4. The two mechanisms are non-isomorphic and therefore structurally distinct EGTs (Figure 5).
+This confirms that the GAN can generate valid five-link mechanisms that do not duplicate known topologies. The
+comparative results of both illustrative cases are summarized in Table 3.
+Table 2: Results of degree sequences of two EGT graphs using the GANs method
+Graph No.
+Connectivity Matrix [CM]
+Degree Sequences
+EGT5101
+C3 =
+
+
+0
+1
+1
+2
+2
+1
+0
+2
+3
+3
+1
+2
+0
+1
+1
+2
+3
+1
+0
+2
+2
+3
+1
+2
+0
+
+
+D3 = {6, 9, 5, 8, 8}
+EGT5102
+C4 =
+
+
+0
+1
+1
+1
+1
+1
+0
+2
+2
+2
+1
+2
+0
+2
+2
+1
+2
+2
+0
+2
+1
+2
+2
+2
+0
+
+
+D4 = {4, 7, 7, 7, 7}
+6
+Table 3: Comparative summary of illustrative examples
+Example
+Links
+DOF
+Connectivity Matrix Com-
+pared
+Degree Sequence
+Result
+Unique/Duplicate
+Case 1
+4-link
+1
+C1 vs C2
+D1 = {2, 3, 2, 3} vs D2 =
+{2, 3, 2, 1}
+D1 ̸= D2
+Unique
+Case 2
+5-link
+1
+C3 vs C4
+D3
+=
+{2, 3, 2, 3, 2}
+vs
+D4 = {2, 3, 4, 3, 2}
+D3 ̸= D4
+Unique
+5. Conclusions
+This paper presented a deep-learning-assisted framework for the structural synthesis of EGTs using GANs and graph-
+theoretic isomorphism detection. Each gear train schematic was converted into a graph, encoded into a connectivity
+matrix, and analyzed through degree sequences to differentiate unique mechanisms from isomorphic duplicates. The
+GAN was trained on valid EGT data and demonstrated the ability to autonomously generate novel, manufacturable
+topologies without human intervention.
+Two representative examples, 4-link and 5-link (1-DOF), validated the
+methodology. In all cases, generated degree sequences were distinct from known designs, confirming successful creation
+of previously unexplored structural variants. The model consistently avoided redundant configurations, significantly
+reducing manual enumeration and post-processing efforts. All in all, the evidence shows that DL can automate
+and speed up structural synthesis, ensure validity, and remove topological redundancy. It is scalable to high-link
+and multi-degree-of-freedom planetary systems and can be used in compact transmissions, robotics, EV drivetrains,
+aerospace actuators, and adaptive automation.
+Declaration of Competing Interests
+The authors declare that they have no known competing financial interests or personal relationships that could have
+influenced the work reported in this paper.
+Funding Declaration
+This research did not receive any specific grant from funding agencies in the public, commercial, or not-for-profit
+sectors.
+Ethical Approval
+This study does not involve human participants, animals, or sensitive personal data. Ethical approval was not required.
+Data Availability
+The datasets generated and analyzed during this study are available from the corresponding author on reasonable
+request.
+AI Use Disclosure
+The authors used an AI-based language tool to improve grammar and readability. The scientific content and conclusions
+were reviewed and validated by the authors.
+7
+Author Contributions
+Jiyaul Mustafa: Conceptualization, Methodology, Data Collection, Data Analysis, Manuscript Writing, Manuscript
+Revision; Shahnawaz Ahmad: Conceptualization, Methodology, Data Collection, Data Analysis, Manuscript
+Writing, Manuscript Revision; Mohammed Wasid: Conceptualization, Methodology, Data Collection, Data Analysis,
+Manuscript Writing, Manuscript Revision; Mohd Aquib Ansari: Data Analysis, Manuscript Writing, Manuscript
+Revision; Shaharyar Alam Ansari: Data Analysis, Manuscript Writing, Manuscript Revision
+References
+[1] F. Freudenstein, “The basic concepts of pólya’s theory of enumeration, with application to the structural classifica-
+tion of mechanisms,” Journal of Mechanisms, vol. 2, no. 3, pp. 275–290, 1967.
+[2] L. Dobrjanskyj and F. Freudenstein, “Some applications of graph theory to the structural analysis of mechanisms,”
+ASME Journal of Engineering for Industry, vol. 89, no. 1, pp. 153–158, 1967.
+[3] Z. Levai, “Structure and analysis of planetary gear trains,” Journal of Mechanisms, vol. 3, pp. 131–148, 1968.
+[4] F. Buchsbaum and F. Freudenstein, “Synthesis of kinematic structure of geared kinematic chains and other
+mechanisms,” Journal of Mechanisms, vol. 5, pp. 357–392, 1970.
+[5] F. Freudenstein, “An application of boolean algebra to the motion of epicyclic drives,” ASME Journal of Engineering
+for Industry, vol. 93, no. 1, pp. 176–182, 1971.
+[6] J. Wojnarowski and R. Lidwin, “Application of signal flow graphs—the kinematic analysis of planetary gear trains,”
+Mechanism and Machine Theory, vol. 10, pp. 17–31, 1975.
+[7] J. J. U. Jr. and A. Raicu, “A method for the identification and recognition of equivalence of kinematic chains,”
+Mechanism and Machine Theory, vol. 10, no. 5, pp. 375–383, 1975.
+[8] T. S. Mrutyunjaya and M. R. Raghavan, “Structural analysis of kinematic chains and mechanisms based on matrix
+representation,” ASME Journal of Mechanical Design, vol. 101, no. 3, pp. 488–494, 1979.
+[9] R. R. Allen, “Multiport models for the kinematic and dynamic analysis of gear power transmissions,” ASME
+Journal of Mechanical Design, vol. 101, no. 2, pp. 258–267, 1979.
+[10] C. P. Day, H. A. Akeel, and L. J. Gutkowski, “Kinematic design and analysis of coupled planetary bevel-gear
+trains,” ASME Journal of Mechanisms, Transmissions, and Automation in Design, vol. 105, no. 3, pp. 441–444,
+1983.
+[11] D. Gibson and S. Kramer, “Symbolic notation and kinematic equations of motion of the twenty-two basic spur
+planetary gear trains,” Journal of Mechanisms, Transmissions, and Automation in Design, vol. 106, no. 3,
+pp. 333–340, 1984.
+[12] R. Ravishankar and T. S. Mruthyunjaya, “Computerized synthesis of the structure of geared kinematic chains,”
+Mechanism and Machine Theory, vol. 20, no. 5, pp. 367–387, 1985.
+[13] J. Mustafa and A. Hasan, “Some application of graph theory to isomorphic analysis of epicyclic geared mechanisms,”
+Journal of the Institution of Engineers (India) Series C, vol. 102, no. 4, pp. 1051–1057, 2021.
+[14] J. Mustafa and A. Hasan, “Generation of one-dof epicyclic gear trains with up to eight links,” Materials Today:
+Proceedings, vol. 15, no. 1, pp. 1123–1130, 2021.
+[15] J. Mustafa and A. Hasan, “Comparative study between modified path matrix approach, modified gradient method
+and bocher’s technique to detect isomorphism in egts,” Materials Today: Proceedings, vol. 27, no. 3, pp. 1941–1948,
+2021.
+[16] J. Mustafa, A. Hasan, and R. A. Khan, “An application of modified path matrix approach for detection of
+isomorphism among epicyclic gear trains,” Journal of the Institution of Engineers (India) Series C, vol. 101, no. 3,
+pp. 463–472, 2020.
+[17] J. Chu and Y. Zou, “Topological graph descriptions and structural automatic synthesis of planar multiple joint
+and geared-linkage kinematic chains,” Mechanics Science, vol. 36, pp. 12–19, 2016.
+[18] W. Yang, H. Ding, B. Zi, and D. Zhang, “New graph representation for planetary gear trains,” ASME Journal of
+Mechanical Design, vol. 140, no. 1, p. 012303, 2017.
+8
+[19] M. F. Gao and J. B. Hu, “Kinematic analysis of planetary gear trains based on topology,” ASME Journal of
+Mechanical Design, vol. 140, no. 1, pp. 1–12, 2017.
+[20] V. V. Kamesh, K. M. Rao, and A. B. S. Rao, “An innovative approach to detect isomorphism in planar and geared
+kinematic chains using graph theory,” ASME Journal of Mechanical Design, vol. 139, no. 12, pp. 12–22, 2017.
+[21] J. Mustafa, A. Hasan, and R. A. Khan, “An innovative approach for detection of isomorphism of epicyclic gear
+trains,” Materials Today: Proceedings, vol. 25, no. 1, pp. 862–867, 2020.
+[22] F. V. Morlin, A. P. Carboni, and D. Martins, “Synthesis of assur groups via group and matroid theory,” Mechanism
+and Machine Theory, vol. 184, p. 105279, 2023.
+[23] R. Alizade, S. Soltanov, and A. Hamidov, “Structural synthesis of lower-class robot manipulators with general
+constraint one,” Robotics, vol. 10, no. 1, p. 14, 2021.
+[24] W. Yang, H. Ding, and A. Kecskemety, “Structural synthesis towards intelligent design of plane mechanisms:
+current status and future research trend,” Mechanism and Machine Theory, vol. 171, p. 104715, 2022.
+[25] G. Bouritsas, F. Frasca, S. Zafeiriou, and M. M. Bronstein, “Improving graph neural network expressivity via
+subgraph isomorphism counting,” IEEE Transactions on Pattern Analysis and Machine Intelligence, vol. 45, no. 1,
+pp. 657–668, 2022.
+[26] L. Sun, X. Liu, X. Liu, X. Hong, H. Pei, and D. Zhang, “An isomorphism identification method of kinematic chain
+based on optimal arrangement and comparison of branch-chain matrix derived from dendrogram graph,” Advances
+in Mechanical Engineering, vol. 14, no. 12, p. 16878132221131193, 2022.
+[27] L. Sun, R. Cui, Z. Ye, Y. Zhou, Y. Xu, and C. Wu, “Similarity recognition and isomorphism identification of
+planar kinematic chains,” Mechanism and Machine Theory, vol. 145, p. 103678, 2020.
+[28] M. Wasid, A. Y. A. Amar, S. Ahmad, and J. Mustafa, “Enhancing reliability and security in online social networks:
+intelligent learning models for cybercrime detection,” Life Cycle Reliability and Safety Engineering, pp. 1–17, 2025.
+[29] U. C. Okonkwo, C. E. Okafor, S. Ahmad, C. C. Ohagwu, M. E. Aronu, I. P. Okokpujie, C. I. Idumah, N. N.
+Chukwu, C. E. Chukwunyelu, and J. Mustafa, “Research advancements in machine learning-assisted design of
+reinforced composite radiation shields,” Life Cycle Reliability and Safety Engineering, pp. 1–35, 2025.
+[30] N. K. Maurya, R. K. Singh, D. Gupta, R. Mishra, and J. Mustafa, “Evaluation of the mechanical properties of
+alsi10mg composites reinforced with tib2 particles (wt%) fabricated via selective laser melting process,” Life Cycle
+Reliability and Safety Engineering, pp. 1–9, 2025.
+[31] J. Mustafa, S. Ahmad, and S. Hussain, “Machine learning-based data processing for predictive modeling in
+mechanical systems,” Life Cycle Reliability and Safety Engineering, pp. 1–10, 2025.
+[32] V. V. Asrith, S. Mann, S. Garg, and J. Mustafa, “Numerical and mathematical modelling of connecting rod of
+internal combustion engine,” Life Cycle Reliability and Safety Engineering, pp. 1–9, 2025.
+[33] S. Sharma, J. Mustafa, and S. Bhati, “Experimental study of gyroscopic effects on rotating disc,” Journal of the
+Institution of Engineers (India) Series C, vol. 105, pp. 573–585, 2024.
+[34] L. W. Tsai, Mechanism Design: Enumeration of Kinematic Structures According to Function. Boca Raton, FL,
+USA: CRC Press, 2001.
+[35] L. W. Tsai, Robot Analysis: The Mechanics of Serial and Parallel Manipulators. New York, NY, USA: Wiley,
+1999.
+9

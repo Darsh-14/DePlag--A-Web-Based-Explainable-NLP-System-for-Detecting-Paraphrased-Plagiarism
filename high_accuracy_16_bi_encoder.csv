@@ -1,0 +1,15 @@
+Model Name,Similarity Score,Speed (ms/sent),Embedding Dim
+BAAI/bge-large-en-v1.5,0.9623,1871.77,1024
+Alibaba-NLP/gte-multilingual-base,0.8995,303.96,768
+intfloat/e5-base-v2,0.8992,623.85,768
+sentence-t5-base,0.8885,85.58,768
+Qwen/Qwen3-Embedding-0.6B,0.8516,927.14,1024
+mixedbread-ai/mxbai-embed-large-v1,0.8442,406.61,1024
+sentence-transformers/allenai-specter,0.8172,376.72,768
+bert-base-nli-mean-tokens,0.7947,411.16,768
+BAAI/bge-m3,0.7818,2739.03,1024
+all-mpnet-base-v2,0.6098,463.65,768
+all-distilroberta-v1,0.5846,199.5,768
+all-MiniLM-L12-v2,0.5655,95.06,384
+all-MiniLM-L6-v2,0.5171,57.4,384
+paraphrase-MiniLM-L3-v2,0.4858,36.65,384

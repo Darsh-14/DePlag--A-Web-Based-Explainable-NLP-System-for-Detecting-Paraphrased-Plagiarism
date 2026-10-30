@@ -1,0 +1,24 @@
+DePlag — Held-Out Test Set Evaluation (Cross-Encoder)
+Model  : cross-encoder/quora-roberta-base (fine-tuned)
+n_test : 10000
+Threshold: 0.4350
+
+Accuracy  : 0.9084
+Precision : 0.8928
+Recall    : 0.9282
+F1-Score  : 0.9102
+MCC       : 0.8174
+ROC-AUC   : 0.9640
+
+                precision    recall  f1-score   support
+
+Not Plagiarism     0.9252    0.8886    0.9065      5000
+    Plagiarism     0.8928    0.9282    0.9102      5000
+
+      accuracy                         0.9084     10000
+     macro avg     0.9090    0.9084    0.9084     10000
+  weighted avg     0.9090    0.9084    0.9084     10000
+
+Confusion Matrix:
+  TN=4443  FP=557
+  FN=359  TP=4641

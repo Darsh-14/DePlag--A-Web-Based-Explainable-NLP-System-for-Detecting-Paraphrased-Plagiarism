@@ -1,0 +1,4 @@
+Model Name,Similarity Score,Speed (ms/sent),Embedding Dim
+sentence-t5-base,0.9522,166.33,768
+sentence-transformers/all-mpnet-base-v2,0.9439,119.71,768
+BAAI/bge-m3,0.7818,669.4,1024

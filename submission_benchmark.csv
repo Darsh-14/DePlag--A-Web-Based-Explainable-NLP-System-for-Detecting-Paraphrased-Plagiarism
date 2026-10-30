@@ -1,0 +1,7 @@
+Model Name,Model Type,Similarity Score,Speed (ms/sent)
+sentence-t5-base,Bi-Encoder,0.8885,2313.16
+Qwen/Qwen3-Embedding-0.6B,Bi-Encoder,0.8516,1944.13
+BAAI/bge-m3,Bi-Encoder,0.7105,3229.22
+cross-encoder/stsb-distilroberta-base,Cross-Encoder,0.4859,210.08
+cross-encoder/quora-distilroberta-base,Cross-Encoder,0.0004,193.35
+cross-encoder/ms-marco-MiniLM-L-6-v2,Cross-Encoder,-6.5585,40.92

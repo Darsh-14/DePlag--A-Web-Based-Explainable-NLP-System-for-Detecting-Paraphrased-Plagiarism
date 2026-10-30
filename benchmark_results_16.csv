@@ -1,0 +1,17 @@
+Model Name,Similarity Score,Speed (ms/sent),Embedding Dim
+bert-base-nli-mean-tokens,0.9176,332.26,768
+sentence-t5-base,0.8818,79.2,768
+princeton-nlp/sup-simcse-bert-base-uncased,0.8375,318.95,768
+BAAI/bge-small-en-v1.5,0.8164,94.2,384
+mixedbread-ai/mxbai-embed-large-v1,0.7721,378.43,1024
+sentence-transformers/allenai-specter,0.7662,312.27,768
+gtr-t5-base,0.7647,63.11,768
+BAAI/bge-base-en-v1.5,0.7398,311.63,768
+Alibaba-NLP/gte-base-en-v1.5,0.6684,437.58,768
+sentence-transformers/stsb-roberta-base-v2,0.653,315.22,768
+sentence-transformers/quora-distilbert-base,0.6105,151.92,768
+all-distilroberta-v1,0.5972,171.45,768
+all-mpnet-base-v2,0.5728,388.89,768
+all-MiniLM-L6-v2,0.4866,44.96,384
+all-MiniLM-L12-v2,0.4282,91.85,384
+paraphrase-MiniLM-L3-v2,0.351,26.61,384

@@ -1,0 +1,1080 @@
+A Web-Based Explainable NLP System for
+Detecting Paraphrased Plagiarism
+Bipin Kumar1*
+1Electronics and Communication Engineering with specialization in
+Data Science, SRM University, Chennai, India.
+Corresponding author(s). E-mail(s): bipinkumar620013@gmail.com;
+Abstract
+In today’s world, Paraphrased plagiarism unfolds as a quiet yet an alarming cri-
+sis for academic domain. It is different from the simple copy-paste plagiarism.
+In this minute form of plagiarism, structural or word-for-word replacements are
+made using semantically equivalent words or phrases. This changes the con-
+tent but keeps the original stolen idea intact. Traditional detection systems,
+depend heavily on keyword-based overlap, n-gram matching, or digital finger-
+printing. They can efficiently point out copy-paste plagiarism but fail to catch
+complex paraphrased transformations. We have seen recent advancements in
+Natural Language Processing (NLP), like transformer-based architectures and
+sentence embedding models that have significantly improved our ability to detect
+semantic similarity. But, most of the current implementations are ”black-box”
+systems. They produce similarity scores and binary conclusions but do not pro-
+vide any human-interpretable logic regarding why a text was flagged or which
+specific linguistic shifts or structural changes led to the decision.This poses a
+serious issue especially in education, where accountability and corrective feed-
+back are must needed. A raw vague percentage data is not enough to flag a
+work as plagiarized, instructors and students need to have a detailed under-
+standing of the nature and paraphrasing strategies that exist and were used in
+the content. There are existing Explainable AI (XAI) techniques, such as atten-
+tion visualizations, but they fail to provide meaningful insights because they
+are not extended till explicit linguistic reasoning and function at a surface level.
+Also, these systems lack the efficiency to provide counterfactual logic, which is
+essential for understanding how minor structural adjustments can influence a
+model’s judgment. To fill this gap, and help the world deal with the plagia-
+rism issues in a better way, this paper introduces a hybrid, explainable, and
+counterfactual NLP-based framework for detecting paraphrased plagiarism. Our
+approach is based on a combination of core concepts: transformer-driven seman-
+tic modeling, based on linguistic paraphrase typologies, and the generation of
+1
+actionable counterfactual explanations. Our system aligns content at the sen-
+tence level and deconstruct specific operations—such as synonym substitution,
+syntactic restructuring, and polarity reversal, thus providing a roadmap of the
+author’s intent. We have materialized this framework into a web-based proto-
+type, DePlag, which shifts the focus from purely corrective model towards a
+transparent, reasoning-based system. By introducing the combined features of
+high-level semantic awareness with counterfactual logic, this work advances the
+development of trustworthy and scholarly constructive tools for the academic
+community.Key Technical Highlights Included in this Draft are :The SBERT
+Integration that captures conceptual meaning using sentence-t5-base.Forensic
+Clarity: Uses spaCy-based NER to ensure technical terms aren’t lost in the
+paraphrase.Weighted Logic: Implements a Logistic Regression head to balance
+semantic and lexical signals.Actionable Advice: Includes the ”Ethical Advisory”
+logic (thresholds of 0.85 for structural flags and 0.3 for patch-writing) to provide
+human-centered feedback.
+Keywords: Explainable Plagiarism Detection
+Counterfactual Reasoning
+NLP
+Academic Integrity
+
+1 Introduction
+The space of academic integrity is currently under tremendous change due to the
+rapid commercialization of Large Language Models (LLMs) and Generative AI (GenA-
+I). Earlier, plagiarism existed only with simple word-for-word overlap but in today’s
+world it is a complex phase dominated by semantic obfuscation and automated text
+generation.
+Tang et al. (1) recently pointed out a growing problem, it’s getting incredibly
+difficult to tell the difference between what a person wrote and what an AI produced.
+This makes plagiarism detection more complex as the traditional systems we used
+to rely on, like looking for specific writing styles or simple word-matching patterns
+don’t promise accuracy anymore. This disruption is not just technological. Yusuf et
+al. (2) describe Gen-AI to have equal pros and cons. While it offers students with
+a personalized learning experience, it simultaneously poses an existential threat to
+integrity as it defies them from thinking and binds them to a loop of prompting. This
+sentiment is resonated by Basyoni et al. (10), who warn that as education migrates
+toward the Metaverse future, academic content is no longer written by human alone, it
+is a mix of human and AI interpretations, letting AI hold an extensive role in shaping
+the contents.
+In a systematic review of higher education integrity, Bittle and El-Gayar (3) iden-
+tify that students are utilizing Gen-AI to generate complex texts that help them
+bypass traditional plagiarism detection tools. Today, we face Adversarial Paraphrasing.
+Perkins et al. (4) demonstrated that students can bypass leading detectors, includ-
+ing industry standards like Turnitin—by using recursive paraphrasing strategies such
+as synonym replacement and back translation. These techniques effectively lower the
+2
+variation and predictability patterns that previous detectors rely upon. This drawback
+was further exposed by recent evaluations of tools like ChatGPT (5).
+Research Gap The inadequacy of current tools is well-documented. Weber-Wulff
+et al. (6) evaluated and found that detector systems are prone to high False Negative
+rates when facing obfuscated text that are cleverly disguised, and high False Positive
+rates by flagging the non-native English work as plagiarized. This makes people not
+trust such systems anymore. Nelson et al. (9) and Karkoulian et al. (8) conducted
+a research on how students actually feel about this. Students accepted that it is not
+ethical to use GEN-AI, but they justified their actions by pointing out that the schools
+lacked transparent ways to check their work. Basically, they feel that if the rules and
+the tools are a mystery, it’s hard to follow them. Lancaster (7) says that without
+proper proof, we cannot accuse someone for plagiarism as this often backfires, creating
+a conflict between institutional policy and student practice.
+Proposed Solution The threat exists far beyond the undergraduate classroom.
+Guba and Tsivinskaya (11) warn that experts are being pressurized to publish more
+papers which leads them to use GenAI to mask works of others, thus innovation not
+being original anymore. Campino (65) describes this as ”AI-assisted ghostwriting.”
+Even sensitive fields are vulnerable; Erol et al. (12) and Ibrahim (13) caution that
+medical and legal education face risks as AI is smart enough to generate believable but
+factually incorrect case studies. The urgency for a solution is underscored by Awasthi
+et al. (14) and Eshet (15) says that students are well aware of the plagiarism policies
+but they continue to exploit it, due to the detection gap that still existed.
+To overcome these limitations, our paper proposes DePlag– A Hybrid, Explainable
+Plagiarism Detection System (HEPDS). As we know, we can not rely solely on opaque
+”Black Box” traditional models. That would be insufficient. So, we introduce a system
+that combines the semantic depth of Sentence-BERT (SBERT) with the computational
+efficiency of lexical alignment, enhanced by a novel Explainable AI (XAI) visualization
+layer with counterfactual reasoning.
+2 Related Work
+The evolution of plagiarism detection can be divided into three different eras: (1)
+Traditional Lexical Detection, (2) Deep Learning & Stylometry, and (3) The Modern
+Era of Hybrid & Explainable Architectures.
+Lexical & Statistical Approaches Early research in plagiarism detection
+was based on surface-level similarity. A major landmark survey was conducted, in
+which Folt´ynek et al. (19) divided these methods into character-based (n-gram) and
+vector-based approaches. Samen (24) refined n-gram analysis for scholarly documents
+specifically using metadata to determine how closely two documents are related. It
+was noted that 3-gram overlaps were good to detect verbatim copying, but they fail
+against ”paraphrased plagiarism” where words are substituted but meaning remains
+same. A solution wss proposed by El-Rashidy et al. which said that Support Vec-
+tor Machines (SVM) could be used and more effective results could be obtained from
+the available methods(20). To detect GEN-AI content, these attempts were not much
+effective as they lacked the semantic understanding required. Similarly, Kamat et al.
+3
+(25) came up with the idea of using supervised classifiers to detect both the exact
+and the paraphrased document. Although, this method brought some success but a
+significant degradation was noticed in the performance in case of shuffled content.
+Plagiarism Detection in Other Domains
+Over the years, plagiarism detection has moved beyond simple text analysis. It
+includes complex systems theory and even code analysis now. De Santis et al. (71) talks
+about using of Complex Systems theory to find out the differences between human-
+written text and LLM-generated text rather than depending on the traditional sta-
+tistical patterns. In this research, he analyzed whether the patterns used by Natural
+Language Generation(NLG) are enough to replicate the hierarchial structures seen in
+human intelligence. In the domain of software engineering, Zhang and Saber (23) and
+Romanov et al. (61) addresses plagiarism and AI generated content and proposes an
+integrated technique to verify the authorship of both natural language and program-
+ming source code. Ito et al. (72) and Suljic and Hossain (73) reveal about the use
+of neural machine translation models. We structure or train such models to detect
+similarity and authorship of binary codes. Furthermore, Shen and Lin (60) made a
+hybrid model for detecting plagiarism in patent claims known as ’PatentGrapher’. All
+these cases together tell us how versatile it is to use graph neural networks in other
+specialized domains.
+Development of Hybrid Systems It was soon realized that it is difficult for
+a single model to handle all the operations. So, the concept of Hybrid Architectures
+was born. Jieren et al. (30) proposed a system that worked in two stages: It filters
+candidates using lightweight metrics before applying heavy Transformer classification.
+We use this same logic in our work so as to ensure scalability. Similarly, Tang et al. (29)
+utilized FAISS combined with sentence embeddings to handle large-scale retrieval. Setu
+et al. (31) and Hassan et al. (33) further enhanced Semantic Textual Similarity(STS)
+using web scraping and chaotic perturbation optimization techniques.
+Explainable mechanism At present, literature does not have a an effective
+feature to explain the plagiarism detected. As Parvathy et al. (74) says automated
+assessment systems must provide constructive feedback to be academically effective;
+a simple plagiarism percentage score is vague rather than informative. Manzoor et al.
+(76) explored more and analyzed how to identify plagiarism by examining writing style,
+lexical diversity, and syntax changes within a single document and decoded intrinsic
+detection metrics to differentiate between malicious intent and harmless errors. Luo et
+al. (41) and Najjar et al. (42) emphasize on the necessity of ”Local Interpretations” to
+achieve this goal. Techniques such as LIME (48) and SHAP (49) have been adapted
+by Schulte et al. (44) and Cesarini et al. (43) to provide feature-level importance
+scores. Nasim et al. (45) proposed a framework for Trustworthy XAI. He suggested
+that visually highlighting suspicious text spans improves user acceptance. This was
+further supported by Vilone and Longo (46).
+Adversarial Threats The robust and advanced system should be capable enough
+to detect adversarial plagiarism. Macko et al. (50) and Maiti et al. (52) studied author-
+ship obfuscation and showed that automated paraphrasing tools can strongly reduce
+detection performance. There are problems created by Gen-AI data enhancement. Li et
+al. (54) and Stefanovi´c et al. Stefanovi´c et al. (55) mention these problems for reliable
+4
+and accurate detection. Alharthi et al. (64) and Sharmila et al.(75) proposed respon-
+sible mitigation methods using fuzzy logic and ensemble learning (62; 67) to address
+these issues. Beyond authorship detection, applied these similarity-based methods were
+applied to fake news and tweet detection by Bezerra et al. (66) and Noronha (63).
+Thus, we get to know about the board applications and adaptability of transformer-
+based systems (68; 69).
+3 Problem Definition
+We have moved beyond simple word-matching techniques. Today, deep neural networks
+like BERT are used to detect plagiarism even when a sentence has been carefully
+rewritten or when words are replaced with synonyms. However the major problem still
+remains .These systems can tell us that a document is highly likely to be a plagiarized
+,but they do not clearly explain why or point to the exact parts of the text that caused
+this decision.
+This creates a serious problem in schools and universities. A student cannot be
+accused of academic dishonesty just because a trained system gives a high probability
+score . In an academic environment, we need more than a number; we need clear proof.
+It should be possible to show a student exactly where their logic appears to be copied
+and explain why.
+Let Dsusp denote a suspicious document (query) and Dsrc denote a source docu-
+ment from the reference corpus C. Following the granular approach recommended by
+Zhou et al. (2025) suggested , each document is treated as an ordered sequence of
+sentences S = {s1, s2, ..., sn}.
+The main challenge in plagiarism detection is to define a mapping function f :
+Ssusp →Ssrc so that a sentence si ∈Dsusp is aligned with a sentence sj ∈Dsrc when
+both express the same meaning , even if the wording and structure are different .
+We define two types of similarity that are considered:
+• Lexical Similarity (L): It is omputed using the Jaccard Coefficient over sets of
+n-grams and , measures surface-level word overlap.
+• Semantic Similarity (S): It is Computed using Cosine Similarity between dense
+vector embeddings ei and ej generated by the SBERT Bi-Encoder.
+Adversarial Paraphrased Plagiarism refer to situations where a text keeps the
+same meaning as the original source but it intentionally changed in wording to reduce
+direct word overlap (e.g., by replacing words with synonyms or changing the sentence
+structure).
+Accordingly, a sentence pair (si, sj) is classified as Paraphrased Plagiarism if it
+satisfies the dual condition:
+P(si, sj) ⇐⇒(L(si, sj) < τlex) ∧(S(si, sj) ≥τsem)
+(1)
+Where:
+• τlex is the lexical threshold (e.g., 0.3) below which traditional n-gram detectors fail.
+• τsem is the semantic threshold (e.g., 0.75) indicating high conceptual similarity.
+5
+Consequently, our binary detection function F for a given document pair is defined
+as an aggregation of sentence-level judgments. We use the Two-Stage Hybrid logic
+proposed by Jieren et al. (2025). The function operates as follows:
+F(si, sj) =
+
+
+
+
+
+1(Verbatim),
+if L(si, sj) ≥τlex
+1(Paraphrased),
+if L(si, sj) < τlex and S(si, sj) ≥τsem
+0(Original),
+otherwise
+(2)
+The objective of this research is to maximize the detection of the second case
+(Paraphrased), which shows the gap in current literature described by Weber-Wulff
+et al. (2023).
+3.1 Explainability Requirement:
+A simple binary detection result, expressed as F ∈{0, 1}, is usually not enough for a
+teacher who needs to discuss to a student about their work. When a system only simply
+labels a paper as ”plagiarized” without any explaination, it does not support learning
+or improvement. For this reason ,we believe that a user need a local explanation E
+that clearly shows why a particular text segment was flagged. To provide this clarity,
+we adopt the taxonomy of Local Interpretations defined by Luo et al. We define
+the explanation function as a token-level attribution map. This allows the system to
+exactly which words or phrases contributed most to the detection result. By converting
+high-dimensional model data into a visual representation, the system moves away from
+a purely punitive model toward a transparent and understandable one. This ensures
+that before anyone is accused of misconduct a clear evidence is available, instead of
+any unclear statistical scores.
+Let ssusp = {w1, w2, ..., wm} be a plagiarized sentence containing m tokens. The
+explainability function E connects the sentence pair to a vector of importance scores
+Φ:
+E(ssusp, ssrc) →Φ = {ϕ1, ϕ2, ..., ϕm}
+(3)
+where ϕk represents the attribution score of the k-th token wk. It shows how much
+it contributes to the semantic similarity vector. Based on the X AI framework proposed
+by Nasim et al. the visual explanation mask M by applying a relevance threshold δ:
+M(wk) =
+(
+High risk
+if ϕk ≥δ
+(Plagiarized Segment)
+Low risk
+if ϕk < δ
+(Original Contribution)
+(4)
+This formulation transforms the system from a ”Black Box” into a Glass Box. It
+allows users to clearly understand and verify why a similarity has been flagged. It
+helps distinguish whether the similarity comes from intentional plagiarism (such as
+synonym replacement detected by SBERT) or is just a coincidence.
+6
+4 Proposed Explainable Framework
+Traditional ”Black Box” neural detectors have limits , so our framework takes a differ-
+ent approach . Instead of just giving an end-to-end prediction , it combines three clear
+steps : (1) Hybrid Semantic-Lexical Alignment, (2) Automated Obfuscation Forensics,
+and (3) Visual Counterfactual Explanation.
+The first step identifies potential suspicious sentence pairs. We use the SBERT Bi-
+Encoder to convert sentences into 768-dimensional vectors. Unlike old n-gram methods
+(Samen), which miss the meaning behind words, SBERT captures the actual intent of
+the text.
+Model Selection To find the best model for our framework , we tested 16 pre-
+trained Transformer models . We looked at both accuracy (Spearman’s ρ on the STS
+Benchmark) and speed (milliseconds per sentence on an NVIDIA T4 GPU ).
+Table
+1
+shows
+the
+distribution
+.
+Big
+models
+like
+bert-base-nli
+and
+sup-simcse-bert
+are
+very
+accurate
+(ρ
+>
+0.90)
+but
+slow
+(
+over
+300
+ms/sentence), which makes them hard to use in real-time . Smaller models like
+paraphrase-MiniLM-L3 are super fast (26 ms) , but their understanding of meaning
+is poor (ρ < 0.40), so they failed to detect serious paraphrasing.
+We selected sentence-t5-base as the main encoder. It occupies the ”Pareto Frontier”
+of efficiency, keeping 96.1% of the best model’s accuracy while reducing inference time
+by 76.2% (down to 79.20 ms/sent). This also matches findings from Yinkfu (2025) ,
+who showed that distilled T5 models are efficient for real -world applications.
+Table 1: Performance Benchmarking of 16 Transformer Architectures.We found that
+a threshold of 0.82 is the perfect point for academic plagiarism. If we increased the
+threshold above 0.85, complex plagiarism will bypass. But if we decreased it below
+0.75, it would give false accusations.
+Model Name
+Score (ρ)
+Accuracy (%)
+Speed (ms)
+Dim
+bert-base-nli-mean-tokens
+0.9176
+94.2%
+332.26
+768
+sentence-t5-base (Ours)
+0.8818
+92.5%
+79.20
+768
+sup-simcse-bert-base-uncased
+0.8375
+89.1%
+318.95
+768
+BAAI/bge-small-en-v1.5
+0.8164
+88.4%
+94.20
+384
+mixedbread-ai/mxbai-embed-large
+0.7721
+84.6%
+378.43
+1024
+sentence-transformers/allenai-specter
+0.7662
+82.3%
+312.27
+768
+gtr-t5-base
+0.7647
+81.8%
+63.11
+768
+BAAI/bge-base-en-v1.5
+0.7398
+79.5%
+311.63
+768
+Alibaba-NLP/gte-base-en-v1.5
+0.6684
+72.1%
+437.58
+768
+stsb-roberta-base-v2
+0.6530
+70.4%
+315.22
+768
+quora-distilbert-base
+0.6105
+68.2%
+151.92
+768
+all-distilroberta-v1
+0.5972
+65.8%
+171.45
+768
+all-mpnet-base-v2
+0.5728
+62.4%
+388.89
+768
+all-MiniLM-L6-v2
+0.4866
+55.1%
+44.96
+384
+all-MiniLM-L12-v2
+0.4282
+51.3%
+91.85
+384
+paraphrase-MiniLM-L3-v2
+0.3510
+44.7%
+26.61
+384
+7
+Filtering For all sentences ssusp in the query document, we compute the cosine
+similarity with the sentence in the reference corpus. To isolate Adversarial Paraphras-
+ing, we apply the **Dual-Threshold Filter** defined in Eq. (2). that a sentence pair
+is flagged only if it meets both of these :
+1. High Semantic Similarity: S(ssusp, ssrc) > α (where α = 0.85), meaning the
+sentences are sharing same concept .
+2. Low Lexical Overlap: L(ssusp, ssrc) < β (where β = 0.40), meaning the words have
+been changed.
+Fig. 1: Model Selection . We selected sentence-t5-base (Red) as it occupies the
+optimal efficiency intersection, offering high semantic fidelity (ρ ≈0.88) with sub-
+100ms latency suitable for real-time web deployment.
+Once a pair is aligned, the system must identify how the text was obfuscated.
+Drawing on the taxonomy of ”Authorship Obfuscation” defined by Macko et al. we
+employ a linguistic typology approach. Both sentences are parsed using dependency
+parsers (via spaCy) to generate syntactic trees. We compare the graph structures of the
+source (Tsrc) and target (Tsusp) sentences and identify specific obfuscation strategies:
+• Synonym Substitution: It is detected when the syntactic structure (edges and depth)
+remains constant (Tsrc ∼= Tsusp), but leaf nodes differ but share a WordNet. This
+opposes the Simple Paraphrasing plagiarism.
+• Syntactic Obfuscation: It is detected by analyzing dependency shifts. Specifically,
+we flag a Voice Change if the object (dobj) in Tsrc becomes the subject (nsubjpass)
+in Tsusp, followed by inserting of auxiliary verbs. This explicitly detects the Active-
+to-Passive rewriting strategy.
+8
+• Structural Restructuring: It is detected when the tree depth or branching factor
+changes significantly (∆depth > 2) while the semantic embedding vector remains
+stable.
+The innovation in the HEPDS architecture is its transparency in comparison to
+binary classification. We introduce a Glass-Box Transparency Layer that decomposes
+the plagiarism decision into granular linguistic evidence. This is achieved through
+two coupled mechanisms: Gradient-Based Feature Attribution and Perturbation-Based
+Counterfactual Generation.
+Mechanism A: Gradient-Based Token Attribution
+To generate the visual mask M (defined in Eq. 3.6), we do not rely on simple key-
+word matching. Instead, we compute the Integrated Gradients (IG) of the semantic
+similarity score with respect to the input tokens.
+Let Ssim = cos(esusp, esrc) be the scalar output of the SBERT model. We define
+the attribution score ϕk for the k-th token wk in the target sentence as the gradient
+of the similarity score. This score is relative to the token’s embedding vector xk:
+ϕk =
+Z 1
+α=0
+∂Ssim(˜x)
+∂xk
+dα
+(5)
+Where ˜x is the interpolated embedding path from a baseline (zero vector) to the
+actual input.
+This calculus-based approach, for example captures if a student changes ”happy”
+to ”elated” to hide plagiarism .The gradient ϕk for ”elated” will spike because it
+heavily drives the semantic match, triggering the High Riskindicator.
+Mechanism B: Counterfactual Generation
+While Mechanism A identifies where the model is looking, Mechanism B answers the
+causal question: ”What is the minimal set of linguistic edits required to revert the
+plagiarism decision?” This moves beyond correlation to establish Causal Provenance.
+We formulate the counterfactual search as a constrained optimization problem. Let
+ssusp be the suspicious sentence and T be the set of its constituent tokens. We seek
+a perturbed sentence s′
+susp derived by applying a masking function M(·) to a subset
+of tokens C ⊂T , such that the semantic similarity score S drops below the penalty
+threshold α, while minimizing the edit distance (size of C).
+The Objective Function:
+min
+C⊂T
+|C|
+subject to
+S(SBERT(s′
+susp), esrc) < α
+(6)
+Since the search space for C is exponential (2m for m tokens), an exhaustive search
+is computationally intractable. To solve this efficiently, we introduce the **Gradient-
+Weighted Iterative Erasure (GWIE)** algorithm, which leverages the attribution
+scores ϕ (from Eq. 5.1) as a method to guide the search tree.
+9
+4.1 Algorithms
+The GWIE Algorithm: The algorithm operates by iteratively masking the tokens
+that contribute most heavily to the semantic collision. this effectively reverses the
+student’s obfuscation steps.
+Algorithm 1 Gradient-Weighted Iterative Erasure (GWIE)
+Require: Suspicious Sentence ssusp, Source Embedding esrc, Threshold α
+Ensure: Counterfactual Set C (The minimal edits)
+1: C ←∅
+2: scurr ←ssusp
+3: Simcurr ←cos(SBERT(scurr), esrc)
+4: while Simcurr ≥α do
+5:
+// Step 1: Compute Gradients for current state
+6:
+Φ ←IntegratedGradients(scurr, esrc)
+7:
+// Step 2: Select Pivot Token (Highest semantic load)
+8:
+wpivot ←argmaxw∈scurr\C(Φ)
+9:
+// Step 3: Apply Ablation (Masking)
+10:
+snext ←MaskToken(scurr, wpivot)
+11:
+C ←C ∪{wpivot}
+12:
+// Step 4: Re-evaluate Semantic Similarity
+13:
+Simcurr ←cos(SBERT(snext), esrc)
+14:
+scurr ←snext
+15: end while
+16: return C
+Analytical Significance Most generic explainer tools function around local
+boundary conditions, but GWIE uses the differentiable nature of the SBERT embed-
+ding space. By effectively removing tokens with the highest gradient magnitude ϕ, the
+algorithm effectively identifies the high impact words of the paraphrase, usually the
+specific synonyms or verbs substituted by the student to evade N-gram detection. The
+resulting set C serves as irrefutable proof of the paraphrase attempt. As this trans-
+former works analyzes work in two layers, it transforms the output from a punishing
+into a formative learning tool. As proposed by Parvathy et al. [65], providing the
+”Minimal Reversal Set” C allows the student to visualize the boundary between legit-
+imate synthesis and patch-writing. By explicitly flagging the Active-to-Passive shift or
+the Synonym Swapping patterns, the system tells the user the specific failures of their
+writing process, resulting in long-term academic integrity.
+5 Results
+We test the HEPDS framework on the MSRP and PAWS datasets. Figure 2. It
+illustrates the system’s detection capabilities across these domains.
+10
+Fig. 2: Performance Comparison. The Hybrid System (Red) maintains > 80% F1-
+score even on the adversarial PAWS dataset, whereas baseline TF-IDF/BERT models
+(Gray) degrade significantly.
+We further examined the reliability of the detection results and visualized the
+classification errors to better understand model behavior.
+Fig. 3: Confusion Matrix (PAWS). The high number of True Positive rate (895)
+shows that the model effectively identifies obfuscated plagiarism while the relatively
+low number of False Positives (115) indicates that incorrect flagging is limited.
+11
+5.1 Hyperparameter Optimization and Sensitivity Analysis
+The performance of the Hybrid SBERT framework depends strongly on how well the
+two decision thresholds are set : the semantic lower-bound α and the lexical upper-
+bound β. If these values are not chosen carefully , then system may either produce
+to high False Acceptance Rates (flagging coincidentally similar text) or high False
+Rejection Rates (missing subtle paraphrasing).
+To identify the most effective parameter values, the calibration process was for-
+mulated as an optimization task over the F1-score surface, allowing us to select the
+threshold combination that provides the best balance between precision and recall.
+We performed a rigorous grid search over the parameter space α ∈[0.60, 0.95] and
+β ∈[0.20, 0.60] using the PAWS adversarial dataset. The improvement objective is
+given as:
+(α∗, β∗) = argmaxα,β
+
+2 · Precision(α, β) · Recall(α, β)
+Precision(α, β) + Recall(α, β)
+
+(7)
+The results of the sensitivity analysis shown in the heatmap in Figure 4, reveal different
+zones:
+• The Under-fitted Zone (α < 0.70): When the semantic threshold is too lenient, the
+system suffers in False Positives, flagging common phrases as plagiarism. This makes
+the precision drop below 60%.
+• The Over-fitted Zone (β > 0.50): The system fails to distinguish ”Paraphrased
+Plagiarism” from ”Verbatim Copying” if the lexical threshold is too high. This
+degrades the specific use of the hybrid engine, as simple n-gram matchers would
+serve.
+• The Optimization spot: The peak F1-score of 0.89 is observed at the intersection
+of α = 0.80 and β = 0.40.
+12
+Fig. 4: F1-Score Sensitivity Surface. The heatmap demonstrates that performance
+is highly sensitive to α. The optimal configuration (α = 0.80, β = 0.40) shows where
+the model is requiring deep meaning overlap but is lexically permissible (allowing
+significant rewording).
+This empirical validation confirms that the proposed thresholds are not trial
+and error data but statistically significant boundaries that maximize the separation
+between honest authorship and adversarial obfuscation.
+To truly understand the ”forensic” capabilities of the HEPDS framework, it is
+insufficient to look at aggregate F1-scores. We must verify whether the specific modules
+we designed (SBERT alignment, Forensics, etc.) actually solve the real-world cheating
+strategies they were built for.
+We conducted a component-wise ablation study, systematically disabling parts
+of the architecture to measure their contribution against five distinct categories of
+”Authorship Obfuscation” defined by the PAN forensics community.
+We tested the model against a synthetic dataset of 500 adversarial samples. Each
+represent a specific bypass strategy commonly used by students. Table ?? gives the
+detection accuracy when specific modules are removed.
+• Scenario A: Synonym Replacement Human Behavior: A student right-clicks words
+in Microsoft Word to find synonyms (e.g., changing ”use” to ”utilize”). Result: Stan-
+dard N-gram models (Jaccard) fail catastrophically here (42% accuracy) because the
+surface text changes. However, our SBERT backbone remains strong (88% accuracy)
+13
+because the n vector direction of the sentence remains constant even the vocabulary
+shift.
+• Scenario B: Active-to-Passive The student rewrites ”The algorithm processes data”
+as ”Data is processed by the algorithm” to flip word order. Result: This defeats
+simple sequence matchers. Yet, our Module specifically flags this structural inver-
+sion, and maintains a 92% detection rate. Accuracy drops by 18%. if the module is
+missing.
+• Sentence Reordering Shuffling of clauses or changing the order of texts to confuse
+the detector. Result: The Hybrid system uses a semantic anchor that ignores word
+order. Then it successfully identifies 85% of these cases, whereas the baseline BERT
+model often loses context.
+We trained the model against a synthetic dataset of 500 adversarial samples. Table
+2 details the detection accuracy.
+Table 2: Ablation Results. This table illustrates the impact on
+detection accuracy when specific components are removed across
+different plagiarism types. The full HEPDS system demonstrates
+superior resilience and performance consistency.
+Configuration
+Synonyms
+Reordering
+Passive
+Overall
+Baseline (TF-IDF)
+42.5%
+38.1%
+45.0%
+41.8%
+SBERT Only
+88.2%
+81.4%
+74.6%
+81.4%
+SBERT + Jaccard
+88.2%
+85.0%
+74.6%
+82.6%
+Full HEPDS System
+91.5%
+90.0%
+94.5%
+92.0%
+Finally, we tested the Module against specific linguistic changes. Figure 5 shows
+the efficiency of the system.
+14
+Fig. 5: Forensic Capability. The Radar Chart shows that HEPDS (Red) outper-
+forms standard BERT (Gray) to detect structural plagiarism like Active-to-Passive
+changes.
+This superiority in defense is represented in Figure 5 below. The area in the
+Radar Chart represents the safety margin. The small retracted grey area represents
+the protection offered by the standard BERT baselines. The large red area in our
+Hybrid System represents the comprehensive protection, which proves that the addi-
+tion of Linguistic Forensics (Section 5.3) is not only an added feature but an absolute
+necessity.
+6 System Architecture
+The proposed HEPDS framework operates as a multi-stage pipeline designed to sep-
+arate semantic understanding from lexical verification. As illustrated in Figure 6, the
+system processes input text through parallel analysis streams before giving a final
+explainable decision.
+The architecture is composed of three primary stages:
+15
+Fig. 6: Workflow of the Explainable plagiarism detection system. It shows the archi-
+tecture from document input to counterfactual reasoning output.
+Preprocessing
+At first, a suspicious target document (Dsusp) and a candidate reference corpus are
+input in the pipeline. The noise data is reduced by the Preprocessing Module. Standard
+16
+normalization techniques using the NLTK library are used like tokenization, stop-
+word removal, and lemmatization are used. This standardized input is then divided
+into two parallel processing streams. To capture both verbatim copying and subtle
+paraphrasing, the system uses a hybrid extraction strategy:
+• The Lexical Stream path focuses on surface-level similarity. We use N-Gram layer
+and break the text into unigrams, bigrams, and trigrams. Then we use the Jaccard
+Similarity coefficient L). This gives the exact overlap between the suspicious target
+text and the source. This stream is highly effective at detecting Cut-and-Paste
+plagiarism.
+• The Semantic Stream path focuses on contextual meaning. We utilize the SBERT Bi-
+Encoder (specifically sentence-t5-base) to project sentences into a 768-dimensional
+dense vector space. A Cosine Similarity calculation (S) is then performed between
+the embedding vectors. This stream is effective against synonym replacement and
+sentence reordering.
+The core innovation lies in the Dual-Threshold Logic Gate. The system applies
+conditional thresholds (α for semantic, β for lexical) to classify the text content.
+• If the logic gate flags a sentence as Suspicious, it is passed to the Forensics Module.
+This module performs tasks such as detecting Active-to-Passive voice inversions or
+synonym density to confirm the nature of the obfuscation.
+• In the end the XAI Engine generates a ”Glass-Box” report (E), visualizing the
+specific evidence (Heatmaps and Counterfactuals) to provide the use with solid proof
+of plagiarism.
+Implementation and Development
+The HEPDS framework relies on a decoupled architecture. It separates the compu-
+tationally intensive model training pipeline from the lightweight, real-time inference
+microservice. The system was developed using Python 3.9+, and using the ecosystem
+detailed below.
+We have the training module that is responsible for learning the decision boundary
+between original and plagiarized text. This ensures consistency and balance.
+• We used Pandas to manage the training corpus. We created a balanced dataset
+using samples of 15,000 sentence pairs. This prevented any imbalance bias in class.
+This helps the model to respond equally to positive and negative cases.
+• It does not depend on pre-built metric libraries. Instead we executed custom vector
+based operations using NumPy.
+– Embeddings were generated using the sentence-t5-base transformer. We
+computed Cosine similarity using manual linear algebra that is dot product
+normalized by Euclidean norms to ensure precise control over floating-point
+stability.
+– A custom Jaccard overlap function was implemented using Python’s native set
+operations for speed. +
+17
+• The final decision logic is a Logistic Regression classifier from Scikit-learn. It was
+configured with class weight=’balanced’. This specific hyperparameter ensures
+that the model avoids false negatives more efficiently.
+Inference Engine and Deployment: The runtime application is served using a Flask
+microservice, designed to separate the inference logic from the user interface.
+• The heavy T5 transformer and spaCy NER pipelines are not initialized per request,
+they are pre-loaded into global memory during the application startup. This is done
+to minimize the latency.
+• We integrated spaCy (en core web sm) specifically for Named Entity Recognition
+(NER) that allows the system to identify shared proper nouns (e.g., ”Algorithm
+X”) independent of the surrounding sentence structure.
+• The trained classifier and logic gates are arranged serially using Pickle. This allows
+a rapid deployment and versioning of the decision logic so that the underlying
+transformer does not require any retraining.
+6.1 Code Availability:
+The detailed working and code for the proposed module can be accessed from Github
+7 Datasets
+To evaluate the performance of the proposed HEPDS framework, we constructed a
+composite dataset that reflects a wide range of academic misconduct. This dataset
+includes everything from simple “copy–paste” plagiarism to more complex, adversarial
+paraphrasing produced by Large Language Models (LLMs). The data were chosen to
+ensure both diversity and difficulty, so that the system is properly stress-tested against
+the different paraphrasing strategies discussed in earlier sections.
+The semantic analysis module is built on well-established benchmark datasets that
+measure a model’s ability to recognize preserved meaning despite changes in wording
+and structure. Microsoft Research Paraphrase Corpus (MSRP) was used as the pri-
+mary baseline dataset for semantic training, as it provides reliable sentence pairs for
+learning paraphrase-level semantic similarity . This corpus is widely regarded as the
+goldmine for paraphrase detection. It consists of 5,801 sentence pairs extracted from
+news sources over an 18-month period. MSRP is not like any other synthetic dataset,
+it captures the natural variance of human writing. It presents a significant challenge
+because the ”paraphrased” pairs often share very few n-grams, forcing our SBERT
+model to rely on deep semantic vectors rather than surface-level matching. We stick to
+the standard split of 4,076 training pairs and 1,725 test pairs. This allows our results
+to be directly comparable to state-of-the-art models like those reviewed by Zhou et al.
+To prevent our system from falling into any unnecessary words matching loop, we
+incorporated the PAWS (Paraphrase Adversaries from Word Scrambling) dataset.
+• PAWS is specifically designed to fool simple neural networks. It contains sentence
+pairs that share high lexical overlap (e.g., the same words arranged differently) but
+have completely different meanings.
+18
+• Consider the difference between ”Flights from New York to Florida” and ”Flights
+from Florida to New York.” A standard Jaccard similarity check would score this
+as a 100% match, potentially flagging a false positive. By training on PAWS, our
+Hybrid Logic learns to distinguish between genuine plagiarism and mere keyword
+coincidence, a critical distinction emphasized by Vahtola et al.
+These datasets were still not enough. While paraphrase datasets test semantic
+understanding, we still required complex datasets with intentional obfuscation to
+detect academic cheating.
+We used subsets from the PAN Plagiarism Corpus (PAN-PC-11), which simulates
+the real-world conditions of academic submissions. This dataset is unique because it
+introduces varying levels of ”obfuscation,” classified into:
+• None (Verbatim): Exact copying, easily caught by any Lexical Stream (Scorelex).
+• Random Text Operations: Manual insertion, deletion, or shuffling of words.
+• Translation: Text that has been translated from German/Spanish to English and
+back, a technique often used by students to scrub digital fingerprints.
+We tested our Explainability (XAI) module against these diverse attack vectors to
+ensure that our Explainability (XAI) module can correctly identify and visualize the
+specific type of transformation being used.
+To address the limitations of the previous collections AI- generated text is included
+in this study. We followed the methodology of Tang et al. and Macko et al. and
+constructed a custom validation set comprising 1,000 abstract-length paragraphs.
+• 50% of the text was human-written (source: arXiv papers) , while we generated the
+remaining using AI like GPT-4 and Claude 3. The prompt was given as ”rewrite
+this academic text to avoid plagiarism detection”.
+• In this subset we specifically focus on the ”hallucination” and ”smoothness” features
+of modern LLMs. It helps us to evaluate whether our SBERT embeddings can go
+beyond the polished surface of AI-generated text and find the underlying source
+material. This would be a bridge to the detection gap mentioned by Perkins et al.
+before.
+We focused on the preprocessing rules first, then fed the data into the HEPDS
+pipeline to ensure clarity.
+• We changed all the text to lowercase, stripped the special characters, but kept the
+punctuation intact where necessary for syntactic parsing.
+• Long documents were segmented into sentence-level units using NLTK, as our
+SBERT model is optimized for short-to-medium text spans.
+• We meticulously removed metadata, citations, and mathematical formulas to pre-
+vent the model from overfitting on non-textual objects, ensuring that the detection
+is based solely on linguistic content.
+Performance is evaluated on two axes: Detection and Explainability. We report
+Accuracy, Precision, Recall, and F1-score. Given the class imbalance in plagiarism
+detection that is most of the text is original, F1-score is the primary metric. We
+measure Reasoning and Counterfactual Stability (are the suggested edits consistent?).
+19
+We also employ human evaluation scores, where domain experts rate the usefulness of
+the generated explanations on a Likert scale.
+8 Discussion
+Switching from ”Black-Box” detection to the explainable HEPDS framework offers
+notable educational benefits, although it brings about certain computational compro-
+mises. A major methodological issue in our Hybrid approach is the delay caused by
+the XAI Engine.
+• Latency Analysis: Standard cosine similarity checks (used in the Semantic Stream)
+operate in O(1) time after vector indexing. However, the generation of counterfactual
+explanations requires iterative gradient queries, which increases inference time by
+approximately 40% compared to baseline BERT models.
+• Justification: While this overhead is non-negligible, it is justifiable for academic
+integrity use cases where **accuracy and transparency** outweigh millisecond-level
+speed. Future work will focus on hierarchical indexing (FAISS) to prune the search
+space before triggering the expensive Forensic Module.
+As noted by Parvathy et al. automated assessment systems must provide construc-
+tive feedback to be truly effective. The HEPDS framework shifts the paradigm from
+purely punitive detection to educational support.
+• Distinguishing Intent: By visualizing the specific linguistic transformations (e.g.,
+Active-to-Passive inversion), the system helps instructors distinguish between mali-
+cious ”Contract Cheating” and benign ”Patchwriting” (poor paraphrasing due to
+lack of skill).
+• Student Feedback: The ”Glass-Box” report acts as a formative tool, showing stu-
+dents exactly how their writing lacks originality, thereby encouraging better citation
+practices rather than just avoiding a similarity score.
+A critical limitation of current semantic models is the potential for ”hallucinat-
+ing” similarity in AI-generated text. As discussed by De Santis et al., Large Language
+Models (LLMs) often produce text with low perplexity and specific statistical
+watermarks.
+• While our Semantic Stream detects paraphrased content effectively, it may struggle
+to differentiate between a student’s original thought and an AI’s synthetic output
+if the semantic vectors align perfectly.
+• Future iterations of HEPDS will incorporate intrinsic detection metrics (Burstiness
+and Perplexity) as surveyed by Manzoor et al. By adding a ”Synthetic Text Detec-
+tor” stream alongside the existing Lexical and Semantic streams, the architecture
+can be extended to flag AI-hallucinated content that mimics academic style.
+20
+8.1 Algorithms:
+HEPDS Training Pipeline (Offline Phase)
+Require: Dataset D = {(x(i)
+a , x(i)
+b , y(i))}N
+i=1, SBERT Model S (sentence-t5-base)
+Ensure: Trained Classifier Cfinal
+1: Preprocessing:
+2: Dtrain ←Sample(D, n = 15000)
+▷Balanced random sampling
+3: Remove rows with NaN values
+4: Feature Extraction (Vectorized):
+5: for all pairs in Dtrain (in parallel) do
+6:
+Ea ←S.encode(xa)
+▷Generate 768-dim embeddings
+7:
+Eb ←S.encode(xb)
+8:
+// Compute Semantic Similarity (Cosine)
+9:
+Scoresem ←
+Ea·Eb
+∥Ea∥∥Eb∥
+10:
+// Compute Lexical Overlap (Jaccard)
+11:
+Seta ←Tokenize(xa), Setb ←Tokenize(xb)
+12:
+Scorelex ←|Seta∩Setb|
+|Seta∪Setb|
+13: end for
+14: Model Fitting:
+15: Construct Feature Matrix X ←[Scoresem, Scorelex]
+16: Initialize C ←LogisticRegression(class weight =′ balanced′)
+17: Cfinal ←C.fit(X, y)
+18: Serialization:
+19: Save Cfinal to semantic model.pkl
+21
+Real-Time Hybrid Inference & Advisory Logic
+Require: Text pair (T1, T2), Classifier C, SBERT S, Spacy NLP Ψ
+Ensure: Probability Pplag, Explanation set E, Advice A
+1: Step 1: Signal Calculation
+2: v1, v2 ←S.encode(T1), S.encode(T2)
+3: α ←Cosine(v1, v2)
+▷Semantic Score
+4: β ←Jaccard(T1, T2)
+▷Lexical Score
+5: Step 2: Probability Estimation
+6: Pplag ←C.predict proba([α, β])
+7: Step 3: Forensic Extraction (Explainability)
+8: Wordsshared ←Tokenize(T1) ∩Tokenize(T2)
+9: Entitiesshared ←Ψ.NER(T1) ∩Ψ.NER(T2)
+10: E ←Wordsshared ∪Entitiesshared
+11: Step 4: Heuristic Advisory Gate
+12: if Pplag > 0.5 then
+13:
+if β > 0.3 then
+14:
+A ←”Patchwriting Detected”
+15:
+else if α > 0.85 then
+▷High semantic, low lexical match
+16:
+A ←”Structural Plagiarism / Paraphrasing”
+17:
+else
+18:
+A ←”Conceptual Similarity”
+19:
+end if
+20: else
+21:
+A ←”Original Content”
+22: end if
+23: return Pplag, E, A
+9 Conclusion
+In this study, we have tackled the growing ”arms race” in academic honesty by
+introducing a Hybrid, Explainable Plagiarism Detection System (HEPDS). As the dis-
+tinction between text written by humans and that generated by machines becomes
+increasingly unclear situation Tang et al. refer to as a ”scientific crisis”conventional
+detection techniques have found it difficult to keep up. Our findings show that depend-
+ing only on unclear probability scores is no longer enough. Rather, we need to shift
+towards ”Glass-Box” systems that not only identify similarities but also clarify the
+origin of those similarities.
+The framework introduced here connects the accuracy of deep learning with the
+clarity needed for educational purposes. By separating semantic understanding (using
+SBERT) from lexical checking (using Jaccard), our hybrid approach effectively detects
+”Adversarial Paraphrasing,” which often bypasses basic n-gram detectors, as noted by
+Samen. Importantly, the inclusion of a Forensic Linguistic Module enables the system
+to differentiate between intentional attempts to obscure content (such as synonym
+replacement attacks) and harmless edits, resolving the false-positive issues highlighted
+by Weber-Wulff et al.
+22
+Beyond the technical framework, this study promotes a change in teaching meth-
+ods. As Parvathy et al. argue, evaluation tools should be supportive rather than merely
+disciplinary. By offering counterfactual explanations demonstrating precisely how a
+student’s sentence structure resembles a source HEPDS shifts plagiarism detection
+from a ”monitoring” function to a resource for improving academic writing. This open-
+ness is crucial for bridging the ”trust gap” identified by Nelson et al., helping students
+recognize the distinction between acceptable influence and academic misconduct.
+Although our early findings are encouraging, the ”Generative Metaverse” outlined
+by Basyoni et al. brings ongoing challenges. Our current model mainly focuses on
+text-to-text paraphrasing; however, the growth of multimodal AI (such as image-to-
+text generation) remains an unexplored area. Future developments of this research
+will concentrate on three main aspects:
+• Scalability: optimizing the counterfactual search algorithms using hierarchical
+indexing (FAISS) to handle university-scale repositories in real-time.
+• GenAI Resilience: integrating intrinsic metrics (such as Burstiness and Perplexity)
+to better flag ”hallucinated” plagiarism from LLMs like GPT-4.
+• Empirical Validation: conducting large-scale user studies with educators and
+students to quantify the impact of explainable feedback on learning outcomes.
+Ultimately, we believe that the future of academic integrity lies not in stricter
+surveillance, but in smarter, more transparent tools that empower students to take
+ownership of their own originality.
+References
+[1] Tang, R., Chuang, Y. N., Hu, X.: The Science of Detecting LLM-Generated Text.
+Communications of the ACM (2024)
+[2] Yusuf, A., et al.: Generative AI and the future of higher education: a threat to
+academic integrity or reformation? Int. J. Educ. Technol. High. Educ. (2024)
+[3] Bittle, K., El-Gayar, O.: Generative AI and Academic Integrity in Higher
+Education: A Systematic Review. Information (2025)
+[4] Perkins, M., et al.: Simple techniques to bypass GenAI text detectors. Int. J.
+Educ. Technol. High. Educ. (2024)
+[5] Elkhatat, A. M.: Evaluating the authenticity of ChatGPT responses: a study on
+text-matching capabilities. Int. J. for Educ. Integrity (2023)
+[6] Weber-Wulff, D., et al.: Testing of detection tools for AI-generated text. Int. J.
+for Educ. Integrity (2023)
+[7] Lancaster, T.: Academic Dishonesty or Academic Integrity? Using NLP to
+Investigate Positive Integrity. J. of Academic Ethics (2021)
+23
+[8] Karkoulian, S., et al.: ChatGPT Unveiled: Understanding Perceptions of Aca-
+demic Integrity. J. of Academic Ethics (2025)
+[9] Nelson, A. S., et al.: Students’ Perceptions of Generative AI Use in Academic
+Writing. Education Sciences (2025)
+[10] Basyoni, L., et al.: Generative AI-Driven Metaverse: The Promises and Chal-
+lenges. IEEE Open Journal (2025)
+[11] Guba, K., Tsivinskaya, A.: Publish or Perish: The Role of AI in Scientific
+Misconduct. Higher Education Policy (2024)
+[12] Erol, B., et al.: AI in Medical Education: Integrity Risks. Medical Teacher (2025)
+[13] Ibrahim, Y.: Artificial Intelligence in Legal Education. J. of Legal Education
+(2023)
+[14] Awasthi, S., et al.: Student Awareness of Plagiarism Policies in the AI Era. J. of
+Academic Ethics (2024)
+[15] Eshet, Y.: The Detection Gap: Why Students Cheat with AI. Computers &
+Education (2025)
+[16] Geweke, S., et al.: Behavioral Responses to AI Plagiarism Detection Tools. Int.
+J. Educ. Technol. (2025)
+[17] Amirzhanov, A., et al.: Plagiarism types and detection methods: a systematic
+survey of algorithms in text analysis. Frontiers in Comp. Sci. (2025)
+[18] Zhou, C., et al.: Paraphrase Identification With Deep Learning: A Review of
+Datasets and Methods. IEEE Access (2025)
+[19] Folt´ynek, T., et al.: Academic plagiarism detection: a systematic literature review.
+ACM Computing Surveys (2019)
+[20] El-Rashidy, M. A., et al.: An effective text plagiarism detection system based on
+feature selection and SVM techniques. Multimedia Tools and Appl. (2024)
+[21] Bouaine, C., et al.: A Systematic Review of Multilingual Plagiarism Detection.
+IJACSA (2025)
+[22] Klabunde, M., et al.: Similarity of Neural Network Models: A Survey. ACM
+Computing Surveys (2025)
+[23] Zhang, Z., Saber, T.: Machine Learning Approaches to Code Similarity Measure-
+ment: A Systematic Review. IEEE Access (2025)
+24
+[24] Samen, Y.: A Semantic Similarity Measure for Scholarly Document Based on the
+Study of n-gram. J. of Web Engineering (2022)
+[25] Kamat, O., et al.: Plagiarism Detection Using Machine Learning. arXiv preprint
+(2024)
+[26] Al Saqaabi, A., et al.: Deep Learning for Paragraph-Level Plagiarism Detection.
+IEEE Access (2025)
+[27] Tahir, M., Mehmood, A.: Cross-Language Plagiarism Detection: Methods and
+Tools. IEEE Access (2021)
+[28] Reimers, N., Gurevych, I.: Sentence-BERT: Sentence Embeddings using Siamese
+BERT-Networks. EMNLP (2019)
+[29] Tang, J., et al.: Efficient Plagiarism Detection via Sentence Embeddings and
+FAISS-based Retrieval. CLEF (2025)
+[30] Jieren, L., et al.: Two-Stage Generative Plagiarism Detection: From TF-
+IDF/Jaccard Filtering to Transformer Classification. CLEF (2025)
+[31] Setu, D. M., et al.: A comprehensive strategy for identifying plagiarism in
+academic submissions. J. Umm Al-Qura Univ. (2025)
+[32] Masih, A., et al.: Classifying human vs. AI text with machine learning and
+explainable transformer models. Scientific Reports (2025)
+[33] Hassan, E., et al.: Intelligent text similarity assessment using Roberta with
+integrated chaotic perturbation. J. of Big Data (2025)
+[34] Xiao, Y., Huang, G.: Enhancing Short Text Semantic Similarity with Word2Vec.
+ACM (2024)
+[35] Yinkfu, N.: Improving QA Efficiency with DistilBERT. arXiv (2025)
+[36] Devlin, J., et al.: BERT: Pre-training of Deep Bidirectional Transformers for
+Language Understanding. NAACL (2019)
+[37] Vaswani, A., et al.: Attention Is All You Need. NeurIPS (2017)
+[38] Raffel, C., et al.: Exploring the Limits of Transfer Learning with a Unified Text-
+to-Text Transformer. JMLR (2020)
+[39] Cao, Y., et al.: Optimizing Neural Embeddings for Interactive Systems. IEEE
+Trans. KDE (2025)
+[40] Ljubovic, V.: A Forensics-Based Approach to Code Plagiarism Detection. Comp.
+Apps. in Eng. Educ. (2020)
+25
+[41] Luo, S., et al.: Local Interpretations for Explainable Natural Language Processing:
+A Survey. ACM Computing Surveys (2024)
+[42] Najjar, A. A., et al.: Leveraging Explainable AI for LLM Text Attribution.
+Information (2025)
+[43] Cesarini, M., et al.: Explainable AI for Text Classification: Lessons from a
+Comprehensive Evaluation. Cognitive Computation (2024)
+[44] Schulte, L., et al.: Studying the explanations... using LIME and SHAP. Empirical
+Soft. Eng. (2024)
+[45] Nasim, M. A., et al.: Trustworthy XAI and Application. arXiv (2024)
+[46] Vilone, G., Longo, L.: Explainable Artificial Intelligence: a Systematic Review.
+Information Fusion (2020)
+[47] Yang, W., et al.: Survey on Explainable AI. Human-Centric Intel. Sys. (2023)
+[48] Ribeiro, M. T., et al.: ”Why Should I Trust You?”: Explaining the Predictions of
+Any Classifier. KDD (2016)
+[49] Lundberg, S. M., Lee, S.: A Unified Approach to Interpreting Model Predictions.
+NeurIPS (2017)
+[50] Macko, D., et al.: Authorship Obfuscation in Multilingual Machine-Generated
+Text Detection. EMNLP (2024)
+[51] Greiner-Petter, A., et al.: Overview of the Plagiarism Detection Task at PAN
+2025. CLEF (2025)
+[52] Maiti, A., et al.: Semantic Reconstruction of Adversarial Plagiarism. arXiv (2025)
+[53] Vahtola, T., et al.: It Is Not Easy To Detect Paraphrases. BlackboxNLP (2022)
+[54] Li, Y., et al.: Detecting Document-level Paraphrased Machine Generated Content.
+arXiv (2024)
+[55] Stefanoviˇc, P., et al.: The influence of Gen-AI tools application for text data
+augmentation. Scientific Reports (2025)
+[56] Boutadjine, A., et al.: Human vs. Machine: A Comparative Study. ACM TALIP
+(2025)
+[57] Zhang, Y., et al.: PAWS: Paraphrase Adversaries from Word Scrambling. NAACL
+(2019)
+26
+[58] Wang, A., et al.: GLUE: A Multi-Task Benchmark and Analysis Platform. ICLR
+(2018)
+[59] Dolan, W. B., Brockett, C.: Microsoft Research Paraphrase Corpus (MSRP). IWP
+(2005)
+[60] Shen, Y., Lin, Z.: PatentGrapher: A PLM-GNNs Hybrid Model. IEEE Access
+(2024)
+[61] Romanov, A., et al.: Integrated Technique of Natural Language Texts and Source
+Codes Authorship Verification. IEEE Access (2025)
+[62] Zhang, Y.: An ensemble deep learning model for author identification. Scientific
+Reports (2025)
+[63] Noronha, F.: Detecting Text Similarity: A Machine Learning Approach. IJSET
+(2025)
+[64] Alharthi, R., et al.: Responsible Detection and Mitigation of AI-Generated Text.
+Springer (2025)
+[65] Campino, J.: Unleashing the transformers: NLP models detect AI writing. J.
+Comp. Assist. Learn. (2025)
+[66] Bezerra, J., et al.: A Novel Approach for Tweet Similarity. IEEE Access (2025)
+[67] Gritsai, G. M., et al.: Stack More LLMs: Efficient Detection. Doklady Mathemat-
+ics (2024)
+[68] Wolf, T., et al.: Transformers: State-of-the-Art Natural Language Processing.
+EMNLP (2020)
+[69] Smith, J.: A Comprehensive Survey on Code and Text Plagiarism. Expert Systems
+with Appl. (2024)
+[70] Kumar, R.: Semantic Plagiarism Detection Using Pre-Trained BERT. Knowledge-
+Based Systems (2023)
+[71] De Santis, E., Martino, A., Rizzi, A.: Human Versus Machine Intelligence: Assess-
+ing Natural Language Generation Models Through Complex Systems Theory.
+IEEE TPAMI (2024)
+[72] Ito, N., Hashimoto, M., Otsuka, A.: Feature Extraction Methods for Binary Code
+Similarity Detection Using Neural Machine Translation Models. IEEE Access
+(2023)
+[73] Suljic, A., Hossain, M. S.: Towards Performance Improvement of Authorship
+Attribution. IEEE Access (2024)
+27
+[74] Parvathy, R., et al.: Automated Code Assessment and Feedback: A Comprehen-
+sive Model. IEEE Access (2025)
+[75] Sharmila, P., et al.: FTLM: A Fuzzy TOPSIS Language Modeling Approach for
+Plagiarism Severity Assessment. IEEE Access (2024)
+[76] Manzoor, M. F., et al.: Exploring the Landscape of Intrinsic Plagiarism Detection:
+Benchmarks, Techniques, Evolution, and Challenges. IEEE Access (2023)
+28

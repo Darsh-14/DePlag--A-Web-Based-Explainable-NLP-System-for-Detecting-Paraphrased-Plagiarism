@@ -1,0 +1,202 @@
+﻿Total cells: 12
+
+=== Cell 0 outputs ===
+Thu Apr 23 03:49:12 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 580.82.07              Driver Version: 580.82.07      CUDA Version: 13.0     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla T4                       Off |   00000000:00:04.0 Off |                    0 |
+| N/A   43C    P8              9W /   70W |       0MiB /  15360MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+-----
+
+=== Cell 1 outputs ===
+Mounted at /content/drive
+Γ£à Drive mounted. Artefacts ΓåÆ /content/drive/MyDrive/DePlag
+
+
+=== Cell 2 outputs ===
+ Working directory: /content/DePlag
+
+
+=== Cell 3 outputs ===
+ All module files written
+
+
+=== Cell 4 outputs ===
+Downloading MRPC ...
+
+/usr/local/lib/python3.12/dist-packages/huggingface_hub/utils/_auth.py:94: UserWarning: 
+The secret `HF_TOKEN` does not exist in your Colab secrets.
+To authenticate with the Hugging Face Hub, create a token in your settings tab (https://huggingface.co/settings/tokens), set it as secret in your Google Colab and restart your session.
+You will be able to reuse this secret in all of your notebooks.
+Please note that authentication is recommended but still optional to access public models or datasets.
+  warnings.warn(
+
+README.md: 0.00B [00:00, ?B/s]
+mrpc/train-00000-of-00001.parquet:   0%|          | 0.00/649k [00:00<?, ?B/s]
+mrpc/validation-00000-of-00001.parquet:   0%|          | 0.00/75.7k [00:00<?, ?B/s]
+mrpc/test-00000-of-00001.parquet:   0%|          | 0.00/308k [00:00<?, ?B/s]
+Generating train split:   0%|          | 0/3668 [00:00<?, ? examples/s]
+Generating validation split:   0%|          | 0/408 [00:00<?, ? examples/s]
+Generating test split:   0%|          | 0/1725 [00:00<?, ? examples/s]
+  MRPC: 3668 pairs
+Downloading PAWS ...
+
+README.md: 0.00B [00:00, ?B/s]
+labeled_final/train-00000-of-00001.parqu(ΓÇª):   0%|          | 0.00/8.43M [00:00<?, ?B/s]
+labeled_final/test-00000-of-00001.parque(ΓÇª):   0%|          | 0.00/1.24M [00:00<?, ?B/s]
+labeled_final/validation-00000-of-00001.(ΓÇª):   0%|          | 0.00/1.23M [00:00<?, ?B/s]
+Generating train split:   0%|          | 0/49401 [00:00<?, ? examples/s]
+Generating test split:   0%|          | 0/8000 [00:00<?, ? examples/s]
+Generating validation split:   0%|          | 0/8000 [00:00<?, ? examples/s]
+  PAWS: 49401 pairs
+Downloading STS-Benchmark ...
+
+README.md: 0.00B [00:00, ?B/s]
+train.jsonl.gz:   0%|          | 0.00/278k [00:00<?, ?B/s]
+validation.jsonl.gz:   0%|          | 0.00/86.4k [00:00<?, ?B/s]
+test.jsonl.gz:   0%|          | 0.00/63.2k [00:00<?, ?B/s]
+Generating train split:   0%|          | 0/5749 [00:00<?, ? examples/s]
+Generating validation split:   0%|          | 0/1500 [00:00<?, ? examples/s]
+Generating test split:   0%|          | 0/1379 [00:00<?, ? examples/s]
+  STS : 5749 pairs
+
+Γ£à Final dataset: 58,818 pairs
+label
+Not Plagiarism    31836
+Plagiarism        26982
+
+
+=== Cell 5 outputs ===
+Thu Apr 23 03:51:15 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 580.82.07              Driver Version: 580.82.07      CUDA Version: 13.0     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla T4                       Off |   00000000:00:04.0 Off |                    0 |
+| N/A   45C    P8             13W /   70W |       0MiB /  15360MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+-----
+/usr/local/lib/python3.12/dist-packages/notebook/notebookapp.py:191: SyntaxWarning: invalid escape sequence '\/'
+  | |_| | '_ \/ _` / _` |  _/ -_)
+
+Device: CUDA  |  Batch: 128  |  Epochs: 2
+Subsampled to 30,000 balanced pairs  (was 58,818)
+
+modules.json:   0%|          | 0.00/349 [00:00<?, ?B/s]
+config_sentence_transformers.json:   0%|          | 0.00/116 [00:00<?, ?B/s]
+README.md: 0.00B [00:00, ?B/s]
+sentence_bert_config.json:   0%|          | 0.00/53.0 [00:00<?, ?B/s]
+config.json:   0%|          | 0.00/612 [00:00<?, ?B/s]
+model.safetensors:   0%|          | 0.00/90.9M [00:00<?, ?B/s]
+tokenizer_config.json:   0%|          | 0.00/350 [00:00<?, ?B/s]
+vocab.txt: 0.00B [00:00, ?B/s]
+tokenizer.json: 0.00B [00:00, ?B/s]
+special_tokens_map.json:   0%|          | 0.00/112 [00:00<?, ?B/s]
+config.json:   0%|          | 0.00/190 [00:00<?, ?B/s]
+
+Steps per epoch : 211
+Total steps     : 422
+Warmup steps    : 42
+ETA (~8 min on T4) ...
+
+Computing widget examples:   0%|          | 0/1 [00:00<?, ?example/s]
+<IPython.core.display.HTML object>
+
+Γ£à Fine-tuned model saved ΓåÆ models/deplag_brain
+
+
+=== Cell 6 outputs ===
+Device: CUDA
+[1/5] Loading dataset ...
+  Subsampled: 30,000 balanced pairs
+  Label dist: {1: 15000, 0: 15000}
+
+[2/5] Encoding with SBERT on GPU (batch=512) ...
+
+Batches:   0%|          | 0/59 [00:00<?, ?it/s]
+Batches:   0%|          | 0/59 [00:00<?, ?it/s]
+  Feature matrix: (30000, 769)
+
+[3/5] Splitting 70 / 15 / 15 ...
+  Train=21,000  Val=4,500  Test=4,500
+
+[4/5] Training HistGradientBoostingClassifier ...
+Binning 0.116 GB of training data: 2.107 s
+Binning 0.013 GB of validation data: 0.136 s
+Fitting gradient boosted rounds:
+Fit 165 trees in 16.314 s, (2465 total leaves)
+Time spent computing histograms: 9.880s
+Time spent finding best splits:  3.599s
+Time spent applying splits:      0.127s
+Time spent predicting:           0.012s
+  Trained in 165 iterations (early stopping)
+
+[5/5] Evaluating ...
+  F1-optimal threshold: 0.4076  (val F1=0.7593)
+
+  [VAL]  Acc=0.7224  AUC=0.8099  F1=0.7593
+
+  [TEST] Acc=0.7089  AUC=0.8040  F1=0.7478
+                precision    recall  f1-score   support
+
+Not Plagiarism       0.80      0.55      0.66      2250
+    Plagiarism       0.66      0.86      0.75      2250
+
+      accuracy                           0.71      4500
+     macro avg       0.73      0.71      0.70      4500
+  weighted avg       0.73      0.
+
+=== Cell 7 outputs ===
+<Figure size 600x500 with 1 Axes>
+Γ£à Saved ΓåÆ evaluation/confusion_matrix.png  (use this as Fig.2 in the paper)
+
+
+=== Cell 8 outputs ===
+<Figure size 800x500 with 1 Axes>
+<Figure size 800x500 with 1 Axes>
+<Figure size 600x500 with 2 Axes>
+<Figure size 700x700 with 1 Axes>
+Γ£à Figures 1, 3, 4, 5 saved  (Fig 2 = confusion matrix from Cell 8)
+
+
+=== Cell 9 outputs ===
+ app.py written to /content/DePlag/app.py
+  yes  app.py
+  yes  models/deplag_brain/config.json
+  yes  models/semantic_model.pkl
+  yes  models/threshold.txt
+  yes  nlp/preprocess.py
+
+ All files present ΓÇö Cell 10 will run successfully.
+
+
+=== Cell 10 outputs ===
+[DePlag] Loading SBERT from 'models/deplag_brain' ...
+[DePlag] Loading classifier from 'models/semantic_model.pkl' ...
+[DePlag] Decision threshold: 0.4076
+Source   : The study of deep learning architectures reveals significant improvements in NLP tasks.
+Suspect  : Research into neural network frameworks demonstrates a major leap in language processing performance.
+Running GWIE (may take ~60 s on GPU) ...
+
+ΓöÇΓöÇ GWIE Result ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+Converged        : False
+Pivotal words (C): ['neural', 'erased', 'processing', 'network', 'frameworks', 'demonstrates', 'performance', 'research', 'into', 'major', 'language', 'leap', 'in']
+Similarity drop  : 0.851 ΓåÆ 0.541
+Counterfactual   : [ERASED] [ERASED] [[ERASED]] [ERASED] [ERASED] [ERASED] a [ERASED] [ERASED] [ERASED] [ERASED] [ERASED] [ERASED]
+
+Iteration trace:
+  Step 1: erase 'neural' (attr=1.000)  sim: 0.851 ΓåÆ 0.796
+  Step 2: erase 'erased' (attr=1.000)  sim: 0.796 ΓåÆ 0.795
+  Step 3: erase 'processing' (attr=0.942)  si
+
+=== Cell 11 outputs ===
+
